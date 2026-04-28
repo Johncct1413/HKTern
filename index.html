@@ -10,7 +10,7 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Tern Survey Helper">
+    <meta name="apple-mobile-web-app-title" content="Tern Survey">
     <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         * { box-sizing: border-box; touch-action: manipulation !important; }
@@ -830,6 +830,19 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registered with scope:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
         }
     </script>
 </body>
