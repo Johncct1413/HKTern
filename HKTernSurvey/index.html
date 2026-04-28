@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tern Survey Helper</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#305f4b">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tern Survey">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        * { box-sizing: border-box; touch-action: manipulation !important; }
+        
+        html, body {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            overflow: hidden; overscroll-behavior-y: none; margin: 0; padding: 0;
+            background-color: #f2eee2; color: #333; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            display: flex; flex-direction: column;
+        }
+        
+        h2, h3, h4 { margin-top: 0; color: #305f4b; }
+        
+        input, select, button {
+            width: 100%; padding: 12px; font-size: 16px; 
+            border: 1px solid #ccc; border-radius: 8px; margin-bottom: 8px; background: #fff;
+        }
+
+        header { background: #305f4b; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        #main-content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+
+        .tab-section { display: none; }
+        .tab-section.active { display: block; animation: fadeIn 0.15s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        #bottom-nav {
+            position: fixed; bottom: 0; width: 100%; display: flex;
+            background: #fff; border-top: 1px solid #ddd; padding-bottom: env(safe-area-inset-bottom); z-index: 100;
+        }
+        .nav-btn {
+            flex: 1; background: transparent; border: none; margin: 0; border-radius: 0;
+            padding: 15px 0; color: #666; font-size: 14px; font-weight: bold; border-bottom: 4px solid transparent;
+        }
+        .nav-btn.active { color: #305f4b; border-bottom: 4px solid #305f4b; background: #e8f3c8; }
+
+        .card { background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 12px; border: 1px solid #e0d8c3; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        
+        .counter-group { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
+        .counter-btn { flex: 1; font-size: 24px; font-weight: bold; background: #e8f3c8; color: #214434; border: 1px solid #d6c8a6; padding: 10px; margin: 0; }
+        .counter-display { flex: 1.5; text-align: center; font-size: 24px; font-weight: bold; border: 2px solid #305f4b; background: #fff; margin: 0; }
+
+        .btn-primary { background: #305f4b; color: white; font-weight: bold; font-size: 16px; padding: 15px; border: none; }
+        .btn-secondary { background: transparent; border: 1px dashed #7f3f98; color: #7f3f98; font-weight: bold; font-size: 14px; padding: 10px; }
+        .btn-tertiary { background: transparent; border: 1px dashed #051cc9; color: #051cc9; font-weight: bold; font-size: 14px; padding: 10px; }
+        .btn-danger { background: transparent; border: 1px dashed #d94f3d; color: #d94f3d; font-weight: bold; font-size: 14px; padding: 10px; }
+        
+        .dist-row { background: #fffdf8; border: 1px solid #d6c8a6; padding: 10px; border-radius: 6px; margin-bottom: 10px; position: relative; }
+        .remove-btn { position: absolute; top: 10px; right: 10px; background: #d94f3d; color: white; border: none; border-radius: 4px; width: 30px; height: 30px; padding: 0; font-weight: bold; }
+        
+        #statusBanner, #statusBannerSetup { display: none; padding: 10px; text-align: center; font-weight: bold; border-radius: 8px; margin-bottom: 10px; color: white; }
+    </style>
+</head>
+<body>
+
+    <header>HK Tern Survey</header>
+
+    <div id="main-content">
+        <div id="tab-setup" class="tab-section active">
+            <div id="statusBannerSetup"></div>
+
+            <h2>🚢 Route</h2>
+            
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <label style="font-weight: bold; color: #305f4b;">⏱️ Checklist Time</label>
+                    <button onclick="setNow()" style="width: auto; padding: 4px 12px; margin: 0; background: #e8f3c8; color: #214434; border: 1px solid #d6c8a6; font-size: 12px; font-weight: bold;">🕒 Now</button>
+                </div>
+                <div class="two-col">
+                    <input type="date" id="envDate" required>
+                    <input type="time" id="envTime" required>
+                </div>
+
+                <label style="font-weight: bold; color: #305f4b; margin-top: 10px; display: block;">📍 Location</label>
+                <select id="transectId" onchange="updateSubTransects()">
+                    <option value="">-- Select Waters --</option>
+                    <option value="NE">NE</option>
+                    <option value="SE">SE</option>
+                    <option value="S">S</option>
+                </select>
+
+                <select id="subTransect">
+                    <option value="">-- Select Area --</option>
+                </select>
+            </div>
+
+            <div class="card">
+                <h4 style="margin-bottom: 10px;">🌤️ Weather</h4>
+                <div class="two-col">
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Temperature (°C)</label>
+                        <input type="number" id="envTemp" placeholder="e.g. 28">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Weather</label>
+                        <input type="text" id="envWeather" placeholder="e.g. Sunny">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Wind Direction</label>
+                        <input type="text" id="envWindDir" placeholder="e.g. E">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Wind Force</label>
+                        <input type="number" id="envWindForce" placeholder="e.g. 3">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Remarks</label>
+                <input type="text" id="setupRemarks" placeholder="e.g. AFCD staff/surveyors">
+            </div>
+
+            <button id="startBtn" class="btn-primary" onclick="startChecklist()">Create & Start Checklist ➔</button>
+        </div>
+
+        <div id="tab-entry" class="tab-section">
+            <div id="statusBanner"></div>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <h2 style="margin:0;">🐦 Bird List</h2>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                    <span id="currentRouteDisplay" style="background: #e8f3c8; padding: 4px 8px; border-radius: 4px; font-size: 20px; font-weight: bold; color: #214434;">Setup Required</span>
+                    <button onclick="resetActiveChecklist()" style="width: auto; padding: 4px 8px; margin: 0; background: transparent; color: #d94f3d; border: 1px solid #d94f3d; font-size: 11px; font-weight: bold; border-radius: 4px;">🔄 Erase Entries</button>
+                </div>
+            </div>
+
+            <datalist id="hk-tern">
+<option value="Brown Noddy">
+<option value="Black Noddy">
+<option value="Aleutian Tern">
+<option value="Sooty Tern">
+<option value="Bridled Tern">
+<option value="Little Tern">
+<option value="Gull-billed Tern">
+<option value="Caspian Tern">
+<option value="Whiskered Tern">
+<option value="White-winged Tern">
+<option value="Common Tern">
+<option value="Black-naped Tern">
+<option value="Roseate Tern">
+<option value="Greater Crested Tern">
+
+            </datalist>
+            <datalist id="hk-raptor">
+                <option value="Osprey">
+<option value="Black-winged Kite">
+<option value="Crested Honey Buzzard">
+<option value="Black Baza">
+<option value="Cinereous Vulture">
+<option value="Crested Serpent Eagle">
+<option value="Short-toed Snake Eagle">
+<option value="Mountain Hawk-Eagle">
+<option value="Black Eagle">
+<option value="Greater Spotted Eagle">
+<option value="Booted Eagle">
+<option value="Steppe Eagle">
+<option value="Eastern Imperial Eagle">
+<option value="Bonelli's Eagle">
+<option value="Crested Goshawk">
+<option value="Shikra">
+<option value="Chinese Sparrowhawk">
+<option value="Japanese Sparrowhawk">
+<option value="Besra">
+<option value="Eurasian Sparrowhawk">
+<option value="Eurasian Goshawk">
+<option value="Western Marsh Harrier ">
+<option value="Eastern Marsh Harrier">
+<option value="Hen Harrier">
+<option value="Pied Harrier">
+<option value="Black Kite">
+<option value="Brahminy Kite">
+<option value="White-bellied Sea Eagle">
+<option value="Grey-faced Buzzard">
+<option value="Eastern Buzzard">
+<option value="Eastern Grass Owl">
+<option value="Northern Boobook">
+<option value="Collared Owlet">
+<option value="Asian Barred Owlet">
+<option value="Mountain Scops Owl">
+<option value="Oriental Scops Owl">
+<option value="Collared Scops Owl">
+<option value="Short-eared Owl">
+<option value="Eurasian Eagle-Owl">
+<option value="Brown Fish Owl">
+<option value="Brown Wood Owl">
+<option value="Common Kestrel">
+<option value="Amur Falcon">
+<option value="Eurasian Hobby">
+<option value="Peregrine Falcon">
+            </datalist>
+            
+            <div id="speciesContainer"></div>
+            
+            <button class="btn-tertiary" onclick="addSpeciesRow()" style="margin-bottom: 15px;">➕🐦 Add Another Species</button>
+
+            <div id="disturbanceContainer"></div>
+            <button class="btn-danger" onclick="addDisturbanceRow()" style="margin-bottom: 15px;">⚠️ + Add Disturbance</button>
+
+            <button class="btn-primary" onclick="closeChecklist()" style="margin-bottom: 10px; font-size: 20px; background: #e67e22;">💾 CLOSE CHECKLIST</button>
+        </div>
+
+        <div id="tab-data" class="tab-section">
+            <h2>📝 Saved Checklists</h2>
+            
+            <div id="checklistContainer"></div>
+
+            <div class="two-col" style="margin-top: 20px;">
+                <button class="btn-primary" onclick="exportCSV()" style="background: #305f4b;">📥 Export CSV</button>
+                <button class="btn-primary" onclick="backupText()" style="background: #7f3f98;">🛟 Backup Text</button>
+            </div>
+            <button class="btn-danger" onclick="clearAllData()" style="margin-top: 10px; width: 100%; border: 1px solid #d94f3d;">🗑️ Clear All Data</button>
+        </div>
+    </div>
+
+    <div id="bottom-nav">
+        <button class="nav-btn active" onclick="switchTab('tab-setup')" id="nav-tab-setup">🚢Route</button>
+        <button class="nav-btn" onclick="switchTab('tab-entry')" id="nav-tab-entry">🐦Bird</button>
+        <button class="nav-btn" onclick="switchTab('tab-data')" id="nav-tab-data">📝Data</button>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'seabird-live-v1';
+        let checklists = [];
+        let activeChecklistId = null; 
+
+        const transectData = {
+            "NE": ["Ma Liu Shui Pier - Che Lei Pai", "Che Lei Pai", "Che Lei Pai - Hoi Ha", "Hoi Ha", "Hoi Ha - Chap Mo Chau", "Chap Mo Chau", "Chap Mo Chau - Yan Chau", "Yan Chau", "Yan Chau - Wong Nai Chau", "Wong Nai Chau", "Wong Nai Chau - Round Island", "Round Island (Pak Sha Chau)", "Round Island - Port Island", "Port Island", "Port Island - Kung Chau", "Kung Chau", "Kung Chau - Shek Ngau Chau", "Shek Ngau Chau", "Shek Ngau Chau - Tap Mun", "Tap Mun", "Tap Mun - Wong Shek Pier", "Wong Shek Pier"],
+            "SE": ["Aberdeen Pier - Lo Chau Pak Pai", "Lo Chau Pak Pai", "Lo Chau Pak Pai - Waglan Island", "Waglan Island", "Waglan Island - East Ninepin", "East Ninepin", "East Ninepin - Kong Tau Pai", "Kong Tau Pai","Kong Tau Pai - Sai Kung Pier", "Sai Kung Pier"],
+            "S": ["East Lamma Channel, Area between Aberdeen and South Lamma", "South Lamma - Soko Islands", "Tau Lo Chau (Soko Islands)", "Yuen Kong Chau (Soko Islands)", "Tai A Chau (Soko Islands)", "Ma Chau (Soko Islands)", "Yuen Chau (Soko Islands)", "Shek Chau (Soko Islands)", "Wan Hau Chau (Soko Islands)", "Siu A Chau (Soko Islands)", "Cheung Muk Tau (Soko Islands)", "Ko Pai (Soko Islands)", "Adamasta Channel and area near Shek Kwu Chau and Cheung Chau", "West Lamma Channel, between Cheung Chau, Hei Ling Chau and Peng Chau", "Peng Chau - Tsim Sha Tsui Pier", "Tsim Sha Tsui Pier"]
+        };
+
+        window.onload = () => {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try { checklists = JSON.parse(saved); } catch(e) { checklists = []; }
+            }
+            setNow(); 
+            renderChecklists();
+        };
+
+        function setNow() {
+            const now = new Date();
+            document.getElementById('envDate').value = now.toISOString().split('T')[0];
+            document.getElementById('envTime').value = now.toTimeString().slice(0, 5);
+        }
+
+        function updateSubTransects(preselect = "") {
+            const line = document.getElementById('transectId').value;
+            const subSelect = document.getElementById('subTransect');
+            subSelect.innerHTML = '<option value="">-- Select Segment --</option>';
+            
+            if (transectData[line]) {
+                transectData[line].forEach(seg => {
+                    const isSelected = seg === preselect ? "selected" : "";
+                    subSelect.innerHTML += `<option value="${seg}" ${isSelected}>${seg}</option>`;
+                });
+            }
+        }
+
+        function switchTab(tabId) {
+            if (activeChecklistId) quickSave();
+
+            if (tabId === 'tab-entry' && !activeChecklistId) {
+                alert("Please start a new checklist in Setup, or tap 'Edit' on a saved one.");
+                tabId = 'tab-setup';
+            }
+
+            if (tabId === 'tab-setup' && !activeChecklistId) {
+                setNow();
+            }
+
+            document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById('nav-' + tabId).classList.add('active');
+
+            if (tabId === 'tab-entry' && activeChecklistId) {
+                const line = document.getElementById('transectId').value || '?';
+                const seg = document.getElementById('subTransect').value || '?';
+                document.getElementById('currentRouteDisplay').innerText = `${line} / ${seg}`;
+            }
+        }
+
+        function startChecklist() {
+            if (activeChecklistId) {
+                quickSave(); 
+                switchTab('tab-entry');
+                return;
+            }
+
+            const transect = document.getElementById('transectId').value;
+            if(!transect) {
+                alert("Please select a Transect Line to start.");
+                return;
+            }
+
+            const btn = document.getElementById('startBtn');
+            btn.innerText = "⏳ Creating Checklist...";
+            btn.disabled = true;
+
+            const newChk = {
+                id: 'chk-' + Date.now(),
+                date: document.getElementById('envDate').value,
+                time: document.getElementById('envTime').value,
+                transectId: transect,
+                subTransect: document.getElementById('subTransect').value,
+                temp: document.getElementById('envTemp').value,
+                weather: document.getElementById('envWeather').value,
+                windDir: document.getElementById('envWindDir').value,
+                windForce: document.getElementById('envWindForce').value,
+                setupRemarks: document.getElementById('setupRemarks').value.trim(), // NEW
+                birds: [
+                    { species: 'Black-naped Tern', count: 0, remarks: '', nests: '', juvs: '', minH: '', maxH: '' },
+                    { species: 'Bridled Tern', count: 0, remarks: '', nests: '', juvs: '', minH: '', maxH: '' },
+                    { species: 'Roseate Tern', count: 0, remarks: '', nests: '', juvs: '', minH: '', maxH: '' }
+                ],
+                disturbances: [],
+                lat: null, lng: null
+            };
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => finalizeStart(newChk, pos.coords.latitude, pos.coords.longitude, btn),
+                    (err) => finalizeStart(newChk, null, null, btn),
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            } else {
+                finalizeStart(newChk, null, null, btn);
+            }
+        }
+
+        function finalizeStart(newChk, lat, lng, btn) {
+            if (lat && lng) {
+                newChk.lat = parseFloat(lat.toFixed(6));
+                newChk.lng = parseFloat(lng.toFixed(6));
+            }
+            
+            checklists.unshift(newChk); 
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(checklists));
+            renderChecklists();
+
+            btn.disabled = false;
+            loadChecklistIntoTab2(newChk.id, true);
+        }
+
+        function quickSave() {
+            if (!activeChecklistId) return;
+            const idx = checklists.findIndex(c => c.id === activeChecklistId);
+            if (idx === -1) return;
+
+            const chk = checklists[idx];
+
+            chk.date = document.getElementById('envDate').value;
+            chk.time = document.getElementById('envTime').value;
+            chk.transectId = document.getElementById('transectId').value;
+            chk.subTransect = document.getElementById('subTransect').value;
+            chk.temp = document.getElementById('envTemp').value;
+            chk.weather = document.getElementById('envWeather').value;
+            chk.windDir = document.getElementById('envWindDir').value;
+            chk.windForce = document.getElementById('envWindForce').value;
+            chk.setupRemarks = document.getElementById('setupRemarks').value.trim(); // NEW
+
+            const validBirds = [];
+            document.querySelectorAll('.species-row').forEach(row => {
+                const sp = row.querySelector('.sp-name').value.trim();
+                const qty = parseInt(row.querySelector('.sp-qty').value);
+                
+                if (sp && !isNaN(qty) && qty >= 0) { 
+                    validBirds.push({
+                        species: sp, count: qty,
+                        remarks: row.querySelector('.sp-rem').value.trim(),
+                        nests: row.querySelector('.br-nests').value, juvs: row.querySelector('.br-juvs').value,
+                        minH: row.querySelector('.br-min').value, maxH: row.querySelector('.br-max').value
+                    });
+                }
+            });
+            chk.birds = validBirds;
+
+            const validDists = [];
+            document.querySelectorAll('.dist-row').forEach(row => {
+                const type = row.querySelector('.dist-type').value;
+                if (!type) return;
+
+                let distObj = { type: type };
+                if (type === 'Raptor') {
+                    distObj.rSp = row.querySelector('.d-sp')?.value || '';
+                    distObj.rNum = row.querySelector('.d-num')?.value || '';
+                    distObj.rBeh = row.querySelector('.d-beh')?.value || '';
+                } else if (type === 'Boat') {
+                    distObj.bType = row.querySelector('.d-btype')?.value || '';
+                    distObj.bReg = row.querySelector('.d-reg')?.value || '';
+                    distObj.bPass = row.querySelector('.d-pass')?.value || '';
+                    distObj.bAct = row.querySelector('.d-act')?.value || '';
+                    distObj.bRem = row.querySelector('.d-rem')?.value || '';
+                } else if (type === 'Visitor') {
+                    distObj.vNum = row.querySelector('.d-vnum')?.value || '';
+                    distObj.vAct = row.querySelector('.d-vact')?.value || '';
+                    distObj.vRem = row.querySelector('.d-vrem')?.value || '';
+                }
+                validDists.push(distObj);
+            });
+            chk.disturbances = validDists;
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(checklists));
+            renderChecklists(); 
+        }
+
+        function resetActiveChecklist() {
+            if (confirm("Are you sure you want to erase all species and disturbances in this active checklist? This cannot be undone.")) {
+                document.getElementById('speciesContainer').innerHTML = '';
+                document.getElementById('disturbanceContainer').innerHTML = '';
+                
+                addSpeciesRow({ species: 'Black-naped Tern', count: 0 });
+                addSpeciesRow({ species: 'Bridled Tern', count: 0 });
+                addSpeciesRow({ species: 'Roseate Tern', count: 0 });
+                
+                if (activeChecklistId) quickSave(); 
+                alert("Checklist entries have been wiped clean.");
+            }
+        }
+
+        function closeChecklist() {
+            quickSave(); 
+            activeChecklistId = null; 
+            
+            document.getElementById('startBtn').innerText = "Create & Start Checklist ➔";
+
+            document.getElementById('statusBanner').style.display = 'none';
+            document.getElementById('statusBannerSetup').style.display = 'none';
+            
+            document.getElementById('speciesContainer').innerHTML = '';
+            document.getElementById('disturbanceContainer').innerHTML = '';
+            
+            document.getElementById('transectId').value = "";
+            document.getElementById('subTransect').innerHTML = '<option value="">-- Select Segment --</option>';
+            document.getElementById('envTemp').value = "";
+            document.getElementById('envWeather').value = "";
+            document.getElementById('envWindDir').value = "";
+            document.getElementById('envWindForce').value = "";
+            document.getElementById('setupRemarks').value = ""; // NEW: Clears Setup Remarks!
+            
+            setNow(); 
+            
+            switchTab('tab-data'); 
+            window.scrollTo(0, 0); 
+        }
+
+        function loadChecklistIntoTab2(id, isNew = false) {
+            const chk = checklists.find(c => c.id === id);
+            if(!chk) return;
+
+            activeChecklistId = id;
+
+            document.getElementById('envDate').value = chk.date;
+            document.getElementById('envTime').value = chk.time;
+            document.getElementById('transectId').value = chk.transectId;
+            updateSubTransects(chk.subTransect); 
+            document.getElementById('envTemp').value = chk.temp;
+            document.getElementById('envWeather').value = chk.weather;
+            document.getElementById('envWindDir').value = chk.windDir;
+            document.getElementById('envWindForce').value = chk.windForce;
+            document.getElementById('setupRemarks').value = chk.setupRemarks || ""; // NEW: Reloads remarks
+
+            document.getElementById('startBtn').innerText = "Continue to Checklist ➔";
+
+            document.getElementById('speciesContainer').innerHTML = '';
+            document.getElementById('disturbanceContainer').innerHTML = '';
+            
+            if (chk.birds) chk.birds.forEach(bird => addSpeciesRow(bird));
+            if (chk.disturbances) chk.disturbances.forEach(dist => addDisturbanceRow(dist));
+
+            const banner = document.getElementById('statusBanner');
+            const bannerSetup = document.getElementById('statusBannerSetup');
+            banner.style.display = 'block';
+            bannerSetup.style.display = 'block';
+
+            if (isNew) {
+                banner.style.background = '#305f4b';
+                banner.innerHTML = '🟢 LIVE CHECKLIST (Auto-Saving)';
+                bannerSetup.style.background = '#305f4b';
+                bannerSetup.innerHTML = '🟢 LIVE CHECKLIST (Auto-Saving)';
+            } else {
+                banner.style.background = '#f39c12';
+                banner.innerHTML = '✏️ EDITING CHECKLIST';
+                bannerSetup.style.background = '#f39c12';
+                bannerSetup.innerHTML = '✏️ EDITING CHECKLIST';
+            }
+
+            switchTab('tab-entry');
+        }
+
+        function editChecklist(id) {
+            loadChecklistIntoTab2(id, false);
+        }
+
+        function addSpeciesRow(bird = null) {
+            const container = document.getElementById('speciesContainer');
+            const id = 'bird-' + Date.now() + Math.floor(Math.random() * 1000);
+            
+            const sp = bird ? bird.species : '';
+            const qty = bird ? bird.count : (sp ? 0 : 1);
+            const rem = bird && bird.remarks ? bird.remarks : '';
+            const nst = bird && bird.nests ? bird.nests : '';
+            const juv = bird && bird.juvs ? bird.juvs : '';
+            const minH = bird && bird.minH ? bird.minH : '';
+            const maxH = bird && bird.maxH ? bird.maxH : '';
+
+            const hasBreedData = nst !== '' || juv !== '' || minH !== '' || maxH !== '';
+            const breedDisplay = hasBreedData ? 'block' : 'none';
+            const breedBtnText = hasBreedData ? '➖ Hide Breeding Data' : '➕ Add Breeding Data';
+
+            const html = `
+                <div class="card species-row" id="${id}">
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end;">
+                        <div style="flex: 2;">
+                            <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Species</label>
+                            <input type="text" class="sp-name" list="hk-tern" value="${sp}" placeholder="e.g. Chinese Crested Tern" style="margin: 0;">
+                        </div>
+                        <button class="btn-danger" onclick="document.getElementById('${id}').remove()" style="flex: 0.5; margin: 0; height: 46px; padding: 0;">X</button>
+                    </div>
+                    
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Count</label>
+                        <div class="counter-group">
+                            <button class="counter-btn" onclick="adjustCount('${id}', -1)">-</button>
+                            <input type="number" class="counter-display sp-qty" value="${qty}" min="0">
+                            <button class="counter-btn" onclick="adjustCount('${id}', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Remarks</label>
+                        <input type="text" class="sp-rem" value="${rem}" placeholder="e.g. Behavior" style="margin-bottom: 8px;">
+                    </div>
+                    
+                    <button class="btn-secondary toggle-breed-btn" onclick="toggleBreed('${id}')" style="width: 100%;">${breedBtnText}</button>
+                    
+                    <div class="breed-section" style="display: ${breedDisplay}; background: #fafafa; padding: 10px; border-radius: 6px; margin-top: 5px; border: 1px dashed #ccc;">
+                        <div class="two-col">
+                            <div>
+                                <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">No. of Nests</label>
+                                <input type="number" class="br-nests" value="${nst}" placeholder="e.g. 2">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">No. of Juveniles</label>
+                                <input type="number" class="br-juvs" value="${juv}" placeholder="e.g. 5">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Min Nest Height(m)</label>
+                                <input type="number" class="br-min" value="${minH}" placeholder="e.g. 1.5">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Max Nest Height(m)</label>
+                                <input type="number" class="br-max" value="${maxH}" placeholder="e.g. 4.0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function adjustCount(rowId, amount) {
+            const input = document.querySelector(`#${rowId} .sp-qty`);
+            let val = (parseInt(input.value) || 0) + amount;
+            if (val < 0) val = 0; 
+            input.value = val;
+        }
+
+        function toggleBreed(rowId) {
+            const section = document.querySelector(`#${rowId} .breed-section`);
+            const btn = document.querySelector(`#${rowId} .toggle-breed-btn`);
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                btn.innerHTML = '➖ Hide Breeding Data';
+            } else {
+                section.style.display = 'none';
+                btn.innerHTML = '➕ Add Breeding Data';
+            }
+        }
+
+        function addDisturbanceRow(dist = null) {
+            const container = document.getElementById('disturbanceContainer');
+            const id = 'dist-' + Date.now() + Math.floor(Math.random() * 1000);
+            
+            const html = `
+                <div class="dist-row" id="${id}">
+                    <button class="remove-btn" onclick="document.getElementById('${id}').remove()">X</button>
+                    <label style="font-weight: bold; color: #d94f3d;">Disturbance Type</label>
+                    <select class="dist-type" onchange="updateDistFields('${id}')" style="margin-top: 5px;">
+                        <option value="">-- Select Type --</option>
+                        <option value="Raptor">🦅 Raptor</option>
+                        <option value="Boat">🚤 Boat</option>
+                        <option value="Visitor">🚶 Visitor</option>
+                    </select>
+                    <div class="dist-fields" style="margin-top: 10px;"></div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+            
+            if (dist) {
+                const select = document.querySelector(`#${id} .dist-type`);
+                select.value = dist.type;
+                updateDistFields(id); 
+                
+                setTimeout(() => {
+                    if (dist.type === 'Raptor') {
+                        document.querySelector(`#${id} .d-sp`).value = dist.rSp || '';
+                        document.querySelector(`#${id} .d-num`).value = dist.rNum || '';
+                        document.querySelector(`#${id} .d-beh`).value = dist.rBeh || '';
+                    } else if (dist.type === 'Boat') {
+                        document.querySelector(`#${id} .d-btype`).value = dist.bType || '';
+                        document.querySelector(`#${id} .d-reg`).value = dist.bReg || '';
+                        document.querySelector(`#${id} .d-pass`).value = dist.bPass || '';
+                        document.querySelector(`#${id} .d-act`).value = dist.bAct || '';
+                        document.querySelector(`#${id} .d-rem`).value = dist.bRem || '';
+                    } else if (dist.type === 'Visitor') {
+                        document.querySelector(`#${id} .d-vnum`).value = dist.vNum || '';
+                        document.querySelector(`#${id} .d-vact`).value = dist.vAct || '';
+                        document.querySelector(`#${id} .d-vrem`).value = dist.vRem || '';
+                    }
+                }, 10);
+            }
+        }
+
+        function updateDistFields(rowId) {
+            const type = document.querySelector(`#${rowId} .dist-type`).value;
+            const fieldContainer = document.querySelector(`#${rowId} .dist-fields`);
+            
+            if (type === 'Raptor') {
+                fieldContainer.innerHTML = `
+                    <div class="two-col">
+                        <div><label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Species</label><input type="text" class="d-sp" list="hk-raptor" placeholder="e.g. Black Kite"></div>
+                        <div><label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Count</label><input type="number" class="d-num" placeholder="e.g. 1"></div>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Behavior</label>
+                        <input type="text" class="d-beh" placeholder="e.g. Soaring">
+                    </div>`;
+            } else if (type === 'Boat') {
+                fieldContainer.innerHTML = `
+                    <div class="two-col">
+                        <div><label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Boat Type</label><input type="text" class="d-btype" placeholder="e.g. Sampan"></div>
+                        <div><label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Reg No.</label><input type="text" class="d-reg" placeholder="e.g. 294768"></div>
+                        <div><label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Passengers</label><input type="number" class="d-pass" placeholder="e.g. 4"></div>
+                        <div><label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Activity</label><input type="text" class="d-act" placeholder="e.g. Diving; Fishing"></div>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Remarks</label>
+                        <input type="text" class="d-rem">
+                    </div>`;
+            } else if (type === 'Visitor') {
+                fieldContainer.innerHTML = `
+                    <div class="two-col">
+                        <div><label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">No. People</label><input type="number" class="d-vnum" placeholder="e.g. 3"></div>
+                        <div><label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Activity</label><input type="text" class="d-vact" placeholder="e.g. Angling"></div>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Remarks</label>
+                        <input type="text" class="d-vrem" placeholder="e.g. Education Actions">
+                    </div>`;
+            } else {
+                fieldContainer.innerHTML = '';
+            }
+        }
+
+        function deleteChecklist(id) {
+            if(confirm("Delete this entire checklist and all its birds?")) {
+                checklists = checklists.filter(c => c.id !== id);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(checklists));
+                
+                if(activeChecklistId === id) {
+                    activeChecklistId = null;
+                    document.getElementById('startBtn').innerText = "Create & Start Checklist ➔";
+                    document.getElementById('statusBanner').style.display = 'none';
+                    document.getElementById('statusBannerSetup').style.display = 'none';
+                    document.getElementById('speciesContainer').innerHTML = '';
+                }
+                renderChecklists();
+            }
+        }
+
+        function clearAllData() {
+            if(confirm("WARNING: Clear all survey data from your phone?")) {
+                checklists = [];
+                activeChecklistId = null;
+                document.getElementById('startBtn').innerText = "Create & Start Checklist ➔";
+                localStorage.removeItem(STORAGE_KEY);
+                document.getElementById('speciesContainer').innerHTML = '';
+                document.getElementById('statusBanner').style.display = 'none';
+                document.getElementById('statusBannerSetup').style.display = 'none';
+                renderChecklists();
+            }
+        }
+
+        function renderChecklists() {
+            const container = document.getElementById('checklistContainer');
+            
+            if (checklists.length === 0) {
+                container.innerHTML = '<div class="card" style="text-align: center; color: #666;">No checklists yet.</div>';
+                return;
+            }
+
+            container.innerHTML = checklists.map(chk => {
+                const spCount = chk.birds.length;
+                const totalBirds = chk.birds.reduce((sum, b) => sum + b.count, 0);
+                const hasDist = chk.disturbances.length > 0 ? '⚠️ Disturbance Logged' : '';
+
+                return `
+                <div class="card" style="border-left: 5px solid #305f4b;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <strong style="font-size: 16px;">${chk.transectId || 'No Line'} - ${chk.subTransect || 'No Seg'}</strong><br>
+                            <span style="font-size: 12px; color: #666;">🕒 ${chk.time} | 📅 ${chk.date}</span><br>
+                            <span style="font-size: 14px; color: #7f3f98; font-weight: bold;">🐦 ${spCount} Species | ${totalBirds} Birds</span>
+                            ${hasDist ? `<br><span style="font-size: 12px; color: #d94f3d; font-weight: bold;">${hasDist}</span>` : ''}
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button onclick="editChecklist('${chk.id}')" style="background: #e8f3c8; border: 1px solid #305f4b; color: #305f4b; padding: 6px 12px; border-radius: 4px; font-weight: bold; margin: 0;">Edit</button>
+                            <button onclick="deleteChecklist('${chk.id}')" style="background: transparent; border: none; color: #d94f3d; text-decoration: underline; padding: 6px 12px; margin: 0; font-size: 12px;">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function backupText() {
+            if (checklists.length === 0) return alert("No data to backup.");
+            const dataString = JSON.stringify(checklists);
+            navigator.clipboard.writeText(dataString).then(() => {
+                alert("✅ Backup copied! Paste into WhatsApp or Note app.");
+            }).catch(err => {
+                prompt("Clipboard blocked. Copy manually:", dataString);
+            });
+        }
+
+        function exportCSV() {
+            if (checklists.length === 0) return alert("No data to export.");
+            
+            // Helper function to safely escape CSV strings
+            const esc = (str) => {
+                if (str === null || str === undefined) return '""';
+                return `"${String(str).replace(/"/g, '""')}"`;
+            };
+
+            // NEW: Helper function to generate Area Tags (e.g., "NE01", "SE05")
+            const getAreaTag = (route, area) => {
+                // Check if route and area exist in our transectData dictionary
+                if (!route || !area || !transectData[route]) return "";
+                
+                // Find the position of the area in the array
+                const index = transectData[route].indexOf(area);
+                if (index === -1) return "";
+                
+                // Add 1 to index (since arrays start at 0) and pad with a leading zero if needed
+                const num = String(index + 1).padStart(2, '0');
+                return route + num; 
+            };
+
+            // NEW: Added "Area Tag" exactly before the "Date" column
+            let csvRows = [
+                "Waters,Route Order,Date,Area,Arrival Time,Temp,Wind Direction,Wind Force,Weather,Route Remarks,Species,Count,No. of Nest,Max Height,Min Height,No. of Young,Birds Remarks,Disturbance Type,Raptor_Species,Raptor_Count,Raptor_Behavior,Boat_Type,Boat_Reg_No,Boat_Passengers,Boat_Activity,Boat_Remarks,Visitor_No,Visitor_Activity,Visitor_Remarks"
+            ];
+            
+            checklists.forEach(chk => {
+                // Generate the tag dynamically for this checklist
+                const areaTag = getAreaTag(chk.transectId, chk.subTransect);
+
+                // NEW: Injected the areaTag variable into our base data row
+                const base = `${esc(chk.transectId)},${esc(areaTag)},${esc(chk.date)},${esc(chk.subTransect)},${esc(chk.time)},${esc(chk.temp)},${esc(chk.windDir)},${esc(chk.windForce)},${esc(chk.weather)},${esc(chk.setupRemarks)}`;
+                
+                // Ensure we log a record even if 0 birds and 0 disturbances were found
+                if (chk.birds.length === 0 && chk.disturbances.length === 0) {
+                    const emptyBirdData = `${esc("No records")},"-","","","","",""`;
+                    const emptyDistData = `"","","","","","","","","","","",""`;
+                    csvRows.push(`${base},${emptyBirdData},${emptyDistData}`);
+                }
+
+                // Export Birds
+                chk.birds.forEach(b => {
+                    const birdData = `${esc(b.species)},${esc(b.count)},${esc(b.nests)},${esc(b.maxH)},${esc(b.minH)},${esc(b.juvs)},${esc(b.remarks)}`;
+                    const emptyDistData = `"","","","","","","","","","","",""`; 
+                    csvRows.push(`${base},${birdData},${emptyDistData}`);
+                });
+
+                // Export Disturbances
+                chk.disturbances.forEach(d => {
+                    const emptyBirdData = `${esc("Disturbance Event")},"-","","","","",""`; 
+                    
+                    let rSp="", rNum="", rBeh="";
+                    let bType="", bReg="", bPass="", bAct="", bRem="";
+                    let vNum="", vAct="", vRem="";
+                    
+                    if (d.type === 'Raptor') {
+                        rSp = d.rSp; rNum = d.rNum; rBeh = d.rBeh;
+                    } else if (d.type === 'Boat') {
+                        bType = d.bType; bReg = d.bReg; bPass = d.bPass; bAct = d.bAct; bRem = d.bRem;
+                    } else if (d.type === 'Visitor') {
+                        vNum = d.vNum; vAct = d.vAct; vRem = d.vRem;
+                    }
+                    
+                    const distData = `${esc(d.type)},${esc(rSp)},${esc(rNum)},${esc(rBeh)},${esc(bType)},${esc(bReg)},${esc(bPass)},${esc(bAct)},${esc(bRem)},${esc(vNum)},${esc(vAct)},${esc(vRem)}`;
+                    
+                    csvRows.push(`${base},${emptyBirdData},${distData}`);
+                });
+            });
+
+            // Generate and download the file
+            const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvRows.join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `HK-Tern-Survey-${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
