@@ -523,24 +523,7 @@
             loadChecklistIntoTab2(id, false);
         }
 
-        function addSpeciesRow(bird = null) {
-            const container = document.getElementById('speciesContainer');
-            const id = 'bird-' + Date.now() + Math.floor(Math.random() * 1000);
-            
-            const sp = bird ? bird.species : '';
-            const qty = bird ? bird.count : (sp ? 0 : 1);
-            const rem = bird && bird.remarks ? bird.remarks : '';
-            const nst = bird && bird.nests ? bird.nests : '';
-            const juv = bird && bird.juvs ? bird.juvs : '';
-            const minH = bird && bird.minH ? bird.minH : '';
-            const maxH = bird && bird.maxH ? bird.maxH : '';
-
-            const hasBreedData = nst !== '' || juv !== '' || minH !== '' || maxH !== '';
-            const breedDisplay = hasBreedData ? 'block' : 'none';
-            const breedBtnText = hasBreedData ? '➖ Hide Breeding Data' : '➕ Add Breeding Data';
-
-            const html = `
-        function addSpeciesRow(bird = null) {
+            function addSpeciesRow(bird = null) {
             const container = document.getElementById('speciesContainer');
             const id = 'bird-' + Date.now() + Math.floor(Math.random() * 1000);
             
@@ -598,7 +581,7 @@
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
-        }
+                }
         
 
         function adjustCount(rowId, amount) {
