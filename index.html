@@ -512,23 +512,9 @@
             dataTabBtn.style.opacity = '0.3';
             dataTabBtn.style.pointerEvents = 'none'; 
 
-            if (isNew) {
-                banner.style.background = '#e74c3c'; // Strong Red
-                banner.innerHTML = '✏️ EDITING NEW CHECKLIST';
-                bannerSetup.style.background = '#e74c3c';
-                bannerSetup.innerHTML = '✏️ EDITING NEW CHECKLIST';
-                
-                mainHeader.style.background = '#e74c3c';
-                mainHeader.innerHTML = `✏️ EDITING: ${chk.transectId || 'Route'} - ${chk.subTransect || 'Area'}`;
-            } else {
-                banner.style.background = '#f39c12'; // Bright Orange
-                banner.innerHTML = '✏️ EDITING CHECKLIST';
-                bannerSetup.style.background = '#f39c12';
-                bannerSetup.innerHTML = '✏️ EDITING CHECKLIST';
-                
+            
                 mainHeader.style.background = '#f39c12';
-                mainHeader.innerHTML = `✏️ EDITING: ${chk.date}`;
-            }
+                mainHeader.innerHTML = `✏️ EDITING: ${chk.transectId || 'Route'} - ${chk.subTransect || 'Area'}`;
 
             switchTab('tab-entry');
                 }
