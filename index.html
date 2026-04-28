@@ -540,48 +540,58 @@
             const breedBtnText = hasBreedData ? '➖ Hide Breeding Data' : '➕ Add Breeding Data';
 
             const html = `
-                <div class="card species-row" id="${id}">
-                    <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end;">
-                        <div style="flex: 2;">
-                            <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Species</label>
-                            <input type="text" class="sp-name" list="hk-tern" value="${sp}" placeholder="e.g. Chinese Crested Tern" style="margin: 0;">
-                        </div>
-                        <button class="btn-danger" onclick="document.getElementById('${id}').remove()" style="flex: 0.5; margin: 0; height: 46px; padding: 0;">X</button>
-                    </div>
-                    
-                    <div>
-                        <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Count</label>
-                        <div class="counter-group">
-                            <button class="counter-btn" onclick="adjustCount('${id}', -1)">-</button>
-                            <input type="number" class="counter-display sp-qty" value="${qty}" min="0">
-                            <button class="counter-btn" onclick="adjustCount('${id}', 1)">+</button>
-                        </div>
-                    </div>
+        function addSpeciesRow(bird = null) {
+            const container = document.getElementById('speciesContainer');
+            const id = 'bird-' + Date.now() + Math.floor(Math.random() * 1000);
+            
+            const sp = bird ? bird.species : '';
+            const qty = bird ? bird.count : (sp ? 0 : 1);
+            const rem = bird && bird.remarks ? bird.remarks : '';
+            const nst = bird && bird.nests ? bird.nests : '';
+            const juv = bird && bird.juvs ? bird.juvs : '';
+            const minH = bird && bird.minH ? bird.minH : '';
+            const maxH = bird && bird.maxH ? bird.maxH : '';
 
-                    <div>
-                        <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Remarks</label>
-                        <input type="text" class="sp-rem" value="${rem}" placeholder="e.g. Behavior" style="margin-bottom: 8px;">
+            const hasBreedData = nst !== '' || juv !== '' || minH !== '' || maxH !== '';
+            const breedDisplay = hasBreedData ? 'block' : 'none';
+            const breedBtnText = hasBreedData ? '➖ Hide Breeding Data' : '➕ Add Breeding Data';
+
+            // UX UPGRADE: Compact Flexbox Layout to save vertical screen space
+            const html = `
+                <div class="card species-row" id="${id}" style="padding: 8px; margin-bottom: 8px;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+                        <input type="text" class="sp-name" list="hk-tern" value="${sp}" placeholder="Species Name" style="flex: 1; margin: 0; font-weight: bold; font-size: 15px; padding: 10px;">
+                        <button class="btn-danger" onclick="document.getElementById('${id}').remove()" style="width: 44px; margin: 0; padding: 0; font-size: 16px;">X</button>
                     </div>
                     
-                    <button class="btn-secondary toggle-breed-btn" onclick="toggleBreed('${id}')" style="width: 100%;">${breedBtnText}</button>
+                    <div style="display: flex; gap: 8px; margin-bottom: 6px; align-items: center;">
+                        <div class="counter-group" style="flex: 1; margin: 0;">
+                            <button class="counter-btn" onclick="adjustCount('${id}', -1)" style="padding: 5px; height: 40px;">-</button>
+                            <input type="number" class="counter-display sp-qty" value="${qty}" min="0" style="padding: 5px; font-size: 18px; height: 40px;">
+                            <button class="counter-btn" onclick="adjustCount('${id}', 1)" style="padding: 5px; height: 40px;">+</button>
+                        </div>
+                        <input type="text" class="sp-rem" value="${rem}" placeholder="Remarks (Optional)" style="flex: 1.5; margin: 0; padding: 10px; font-size: 14px; height: 40px;">
+                    </div>
                     
-                    <div class="breed-section" style="display: ${breedDisplay}; background: #fafafa; padding: 10px; border-radius: 6px; margin-top: 5px; border: 1px dashed #ccc;">
-                        <div class="two-col">
+                    <button class="btn-secondary toggle-breed-btn" onclick="toggleBreed('${id}')" style="width: 100%; padding: 6px; font-size: 13px;">${breedBtnText}</button>
+                    
+                    <div class="breed-section" style="display: ${breedDisplay}; background: #fafafa; padding: 8px; border-radius: 6px; margin-top: 5px; border: 1px dashed #ccc;">
+                        <div class="two-col" style="gap: 5px;">
                             <div>
-                                <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">No. of Nests</label>
-                                <input type="number" class="br-nests" value="${nst}" placeholder="e.g. 2">
+                                <label style="font-size: 11px; font-weight: bold; color: #305f4b; margin-bottom: 2px; display: block;">Nests</label>
+                                <input type="number" class="br-nests" value="${nst}" placeholder="0" style="padding: 8px; margin: 0;">
                             </div>
                             <div>
-                                <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">No. of Juveniles</label>
-                                <input type="number" class="br-juvs" value="${juv}" placeholder="e.g. 5">
+                                <label style="font-size: 11px; font-weight: bold; color: #305f4b; margin-bottom: 2px; display: block;">Juvs.</label>
+                                <input type="number" class="br-juvs" value="${juv}" placeholder="0" style="padding: 8px; margin: 0;">
                             </div>
                             <div>
-                                <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Min Nest Height(m)</label>
-                                <input type="number" class="br-min" value="${minH}" placeholder="e.g. 1.5">
+                                <label style="font-size: 11px; font-weight: bold; color: #305f4b; margin-bottom: 2px; display: block;">Min H(m)</label>
+                                <input type="number" class="br-min" value="${minH}" placeholder="1.5" style="padding: 8px; margin: 0;">
                             </div>
                             <div>
-                                <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Max Nest Height(m)</label>
-                                <input type="number" class="br-max" value="${maxH}" placeholder="e.g. 4.0">
+                                <label style="font-size: 11px; font-weight: bold; color: #305f4b; margin-bottom: 2px; display: block;">Max H(m)</label>
+                                <input type="number" class="br-max" value="${maxH}" placeholder="4.0" style="padding: 8px; margin: 0;">
                             </div>
                         </div>
                     </div>
@@ -589,6 +599,7 @@
             `;
             container.insertAdjacentHTML('beforeend', html);
         }
+        
 
         function adjustCount(rowId, amount) {
             const input = document.querySelector(`#${rowId} .sp-qty`);
