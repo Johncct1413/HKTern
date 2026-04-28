@@ -211,8 +211,8 @@
 
             <div id="disturbanceContainer"></div>
             <button class="btn-danger" onclick="addDisturbanceRow()" style="margin-bottom: 15px;">⚠️ + Add Disturbance</button>
-
-            <button class="btn-primary" onclick="closeChecklist()" style="margin-bottom: 10px; font-size: 20px; background: #e67e22;">💾 CLOSE CHECKLIST</button>
+            <button id="closeChecklistBtn" class="btn-primary" onclick="closeChecklist()" style="margin-bottom: 10px; font-size: 18px; background: #333;">💾 SAVE & CLOSE SESSION</button>
+            
         </div>
 
         <div id="tab-data" class="tab-section">
@@ -263,7 +263,7 @@
         function updateSubTransects(preselect = "") {
             const line = document.getElementById('transectId').value;
             const subSelect = document.getElementById('subTransect');
-            subSelect.innerHTML = '<option value="">-- Select Segment --</option>';
+            subSelect.innerHTML = '<option value="">-- Select Area --</option>';
             
             if (transectData[line]) {
                 transectData[line].forEach(seg => {
@@ -277,7 +277,7 @@
             if (activeChecklistId) quickSave();
 
             if (tabId === 'tab-entry' && !activeChecklistId) {
-                alert("Please start a new checklist in Setup, or tap 'Edit' on a saved one.");
+                alert("Please start a new checklist in Route, or tap 'Edit' in Data on a saved one.");
                 tabId = 'tab-setup';
             }
 
@@ -434,39 +434,53 @@
                 alert("Checklist entries have been wiped clean.");
             }
         }
-
+        
         function closeChecklist() {
             quickSave(); 
             activeChecklistId = null; 
             
             document.getElementById('startBtn').innerText = "Create & Start Checklist ➔";
 
+            // --- UX UPGRADE: Restore UI to Normal ---
             document.getElementById('statusBanner').style.display = 'none';
             document.getElementById('statusBannerSetup').style.display = 'none';
+            
+            // Reset main header
+            const mainHeader = document.querySelector('header');
+            mainHeader.style.background = '#305f4b';
+            mainHeader.innerHTML = 'HK Tern Survey';
+
+            // Unlock the Data tab
+            const dataTabBtn = document.getElementById('nav-tab-data');
+            dataTabBtn.style.opacity = '1';
+            dataTabBtn.style.pointerEvents = 'auto'; 
+            // ----------------------------------------
             
             document.getElementById('speciesContainer').innerHTML = '';
             document.getElementById('disturbanceContainer').innerHTML = '';
             
             document.getElementById('transectId').value = "";
-            document.getElementById('subTransect').innerHTML = '<option value="">-- Select Segment --</option>';
+            document.getElementById('subTransect').innerHTML = '<option value="">-- Select Area --</option>';
             document.getElementById('envTemp').value = "";
             document.getElementById('envWeather').value = "";
             document.getElementById('envWindDir').value = "";
             document.getElementById('envWindForce').value = "";
-            document.getElementById('setupRemarks').value = ""; // NEW: Clears Setup Remarks!
+            document.getElementById('setupRemarks').value = ""; 
             
             setNow(); 
             
             switchTab('tab-data'); 
             window.scrollTo(0, 0); 
         }
+        
 
-        function loadChecklistIntoTab2(id, isNew = false) {
+            function loadChecklistIntoTab2(id, isNew = false) {
             const chk = checklists.find(c => c.id === id);
             if(!chk) return;
 
             activeChecklistId = id;
 
+            // Load data into fields
             document.getElementById('envDate').value = chk.date;
             document.getElementById('envTime').value = chk.time;
             document.getElementById('transectId').value = chk.transectId;
@@ -475,7 +489,7 @@
             document.getElementById('envWeather').value = chk.weather;
             document.getElementById('envWindDir').value = chk.windDir;
             document.getElementById('envWindForce').value = chk.windForce;
-            document.getElementById('setupRemarks').value = chk.setupRemarks || ""; // NEW: Reloads remarks
+            document.getElementById('setupRemarks').value = chk.setupRemarks || ""; 
 
             document.getElementById('startBtn').innerText = "Continue to Checklist ➔";
 
@@ -485,25 +499,39 @@
             if (chk.birds) chk.birds.forEach(bird => addSpeciesRow(bird));
             if (chk.disturbances) chk.disturbances.forEach(dist => addDisturbanceRow(dist));
 
+            // --- UX UPGRADE: Header Takeover & Tab Locking ---
             const banner = document.getElementById('statusBanner');
             const bannerSetup = document.getElementById('statusBannerSetup');
+            const mainHeader = document.querySelector('header');
+            const dataTabBtn = document.getElementById('nav-tab-data');
+
             banner.style.display = 'block';
             bannerSetup.style.display = 'block';
 
+            // Lock the Data tab so they don't accidentally leave the active session
+            dataTabBtn.style.opacity = '0.3';
+            dataTabBtn.style.pointerEvents = 'none'; 
+
             if (isNew) {
-                banner.style.background = '#305f4b';
-                banner.innerHTML = '🟢 LIVE CHECKLIST (Auto-Saving)';
-                bannerSetup.style.background = '#305f4b';
-                bannerSetup.innerHTML = '🟢 LIVE CHECKLIST (Auto-Saving)';
+                banner.style.background = '#e74c3c'; // Strong Red
+                banner.innerHTML = '🔴 LIVE CHECKLIST (Auto-Saving)';
+                bannerSetup.style.background = '#e74c3c';
+                bannerSetup.innerHTML = '🔴 LIVE CHECKLIST (Auto-Saving)';
+                
+                mainHeader.style.background = '#e74c3c';
+                mainHeader.innerHTML = `🔴 LIVE: ${chk.transectId || 'Route'} - ${chk.subTransect || 'Area'}`;
             } else {
-                banner.style.background = '#f39c12';
+                banner.style.background = '#f39c12'; // Bright Orange
                 banner.innerHTML = '✏️ EDITING CHECKLIST';
                 bannerSetup.style.background = '#f39c12';
                 bannerSetup.innerHTML = '✏️ EDITING CHECKLIST';
+                
+                mainHeader.style.background = '#f39c12';
+                mainHeader.innerHTML = `✏️ EDITING: ${chk.date}`;
             }
 
             switchTab('tab-entry');
-        }
+                }
 
         function editChecklist(id) {
             loadChecklistIntoTab2(id, false);
