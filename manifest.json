@@ -1,7 +1,7 @@
 {
-  "name": "HK Tern Survey Helper",
+  "name": "HK Tern Survey Data Recorder",
   "short_name": "Tern Survey",
-  "start_url": "./index.html",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#f2eee2",
   "theme_color": "#305f4b",
