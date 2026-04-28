@@ -514,12 +514,12 @@
 
             if (isNew) {
                 banner.style.background = '#e74c3c'; // Strong Red
-                banner.innerHTML = '🔴 LIVE CHECKLIST (Auto-Saving)';
+                banner.innerHTML = '✏️ EDITING NEW CHECKLIST';
                 bannerSetup.style.background = '#e74c3c';
-                bannerSetup.innerHTML = '🔴 LIVE CHECKLIST (Auto-Saving)';
+                bannerSetup.innerHTML = '✏️ EDITING NEW CHECKLIST';
                 
                 mainHeader.style.background = '#e74c3c';
-                mainHeader.innerHTML = `🔴 LIVE: ${chk.transectId || 'Route'} - ${chk.subTransect || 'Area'}`;
+                mainHeader.innerHTML = `✏️ EDITING: ${chk.transectId || 'Route'} - ${chk.subTransect || 'Area'}`;
             } else {
                 banner.style.background = '#f39c12'; // Bright Orange
                 banner.innerHTML = '✏️ EDITING CHECKLIST';
