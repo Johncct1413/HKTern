@@ -10,7 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Tern Survey Helper">
+    <meta name="apple-mobile-web-app-title" content="Tern Survey">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="icon" type="image/png" href="icon-192.png">
     <style>
@@ -258,6 +258,11 @@
             }
             setNow(); 
             renderChecklists();
+
+            // NEW: Lock the Bird tab initially since no checklist is active
+            const birdTabBtn = document.getElementById('nav-tab-entry');
+            birdTabBtn.style.opacity = '0.3';
+            birdTabBtn.style.pointerEvents = 'none';
         };
 
         function setNow() {
@@ -281,11 +286,6 @@
 
         function switchTab(tabId) {
             if (activeChecklistId) quickSave();
-
-            if (tabId === 'tab-entry' && !activeChecklistId) {
-                alert("Please start a new checklist in Route, or tap 'Edit' in Data on a saved one.");
-                tabId = 'tab-setup';
-            }
 
             if (tabId === 'tab-setup' && !activeChecklistId) {
                 setNow();
@@ -454,6 +454,11 @@
             const dataTabBtn = document.getElementById('nav-tab-data');
             dataTabBtn.style.opacity = '1';
             dataTabBtn.style.pointerEvents = 'auto'; 
+
+            // LOCK the Bird tab since no checklist is active anymore
+            const birdTabBtn = document.getElementById('nav-tab-entry');
+            birdTabBtn.style.opacity = '0.3';
+            birdTabBtn.style.pointerEvents = 'none';
             // ----------------------------------------
             
             document.getElementById('speciesContainer').innerHTML = '';
@@ -474,7 +479,7 @@
         }
         
 
-            function loadChecklistIntoTab2(id, isNew = false) {
+           function loadChecklistIntoTab2(id, isNew = false) {
             const chk = checklists.find(c => c.id === id);
             if(!chk) return;
 
@@ -504,6 +509,7 @@
             const bannerSetup = document.getElementById('statusBannerSetup');
             const mainHeader = document.querySelector('header');
             const dataTabBtn = document.getElementById('nav-tab-data');
+            const birdTabBtn = document.getElementById('nav-tab-entry'); // NEW
 
             banner.style.display = 'block';
             bannerSetup.style.display = 'block';
@@ -512,12 +518,15 @@
             dataTabBtn.style.opacity = '0.3';
             dataTabBtn.style.pointerEvents = 'none'; 
 
-            
-                mainHeader.style.background = '#f39c12';
-                mainHeader.innerHTML = `✏️ EDITING: ${chk.transectId || 'Route'} - ${chk.subTransect || 'Area'}`;
+            // UNLOCK the Bird tab so they can use it
+            birdTabBtn.style.opacity = '1';
+            birdTabBtn.style.pointerEvents = 'auto'; 
+
+            mainHeader.style.background = '#f39c12';
+            mainHeader.innerHTML = `✏️ EDITING: ${chk.transectId || 'Route'} - ${chk.subTransect || 'Area'}`;
 
             switchTab('tab-entry');
-                }
+        }
 
         function editChecklist(id) {
             loadChecklistIntoTab2(id, false);
