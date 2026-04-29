@@ -330,7 +330,7 @@
                 weather: document.getElementById('envWeather').value,
                 windDir: document.getElementById('envWindDir').value,
                 windForce: document.getElementById('envWindForce').value,
-                setupRemarks: document.getElementById('setupRemarks').value.trim(), // NEW
+                setupRemarks: document.getElementById('setupRemarks').value.trim(),
                 birds: [
                     { species: 'Black-naped Tern', count: 0, remarks: '', nests: '', juvs: '', minH: '', maxH: '' },
                     { species: 'Bridled Tern', count: 0, remarks: '', nests: '', juvs: '', minH: '', maxH: '' },
@@ -340,15 +340,9 @@
                 lat: null, lng: null
             };
 
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => finalizeStart(newChk, pos.coords.latitude, pos.coords.longitude, btn),
-                    (err) => finalizeStart(newChk, null, null, btn),
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                );
-            } else {
-                finalizeStart(newChk, null, null, btn);
-            }
+            // UX UPGRADE: Bypassing the GPS request completely.
+            // This prevents permission popups, saves battery, and creates the checklist instantly.
+            finalizeStart(newChk, null, null, btn);
         }
 
         function finalizeStart(newChk, lat, lng, btn) {
@@ -770,7 +764,7 @@
                 prompt("Clipboard blocked. Copy manually:", dataString);
             });
         }
-
+        
         function exportCSV() {
             if (checklists.length === 0) return alert("No data to export.");
             
@@ -791,33 +785,30 @@
                 return route + num; 
             };
 
-            // NEW: Moved "Latitude" and "Longitude" to the very end of the header string
+            // REMOVED: Latitude and Longitude from the end of the header
             let csvRows = [
-                "Waters,Route Order,Date,Area,Arrival Time,Temp,Wind Direction,Wind Force,Weather,Route Remarks,Species,Count,No. of Nest,Max Height,Min Height,No. of Young,Birds Remarks,Disturbance Type,Raptor_Species,Raptor_Count,Raptor_Behavior,Boat_Type,Boat_Reg_No,Boat_Passengers,Boat_Activity,Boat_Remarks,Visitor_No,Visitor_Activity,Visitor_Remarks,Latitude,Longitude"
+                "Waters,Route Order,Date,Area,Arrival Time,Temp,Wind Direction,Wind Force,Weather,Route Remarks,Species,Count,No. of Nest,Max Height,Min Height,No. of Young,Birds Remarks,Disturbance Type,Raptor_Species,Raptor_Count,Raptor_Behavior,Boat_Type,Boat_Reg_No,Boat_Passengers,Boat_Activity,Boat_Remarks,Visitor_No,Visitor_Activity,Visitor_Remarks"
             ];
             
             checklists.forEach(chk => {
                 // Generate the tag dynamically for this checklist
                 const areaTag = getAreaTag(chk.transectId, chk.subTransect);
 
-                // Base data (Removed lat and lng from the middle)
+                // Base data 
                 const base = `${esc(chk.transectId)},${esc(areaTag)},${esc(chk.date)},${esc(chk.subTransect)},${esc(chk.time)},${esc(chk.temp)},${esc(chk.windDir)},${esc(chk.windForce)},${esc(chk.weather)},${esc(chk.setupRemarks)}`;
-                
-                // NEW: Created a GPS suffix to append to the end of every row
-                const gpsSuffix = `,${esc(chk.lat)},${esc(chk.lng)}`;
 
                 // Ensure we log a record even if 0 birds and 0 disturbances were found
                 if (chk.birds.length === 0 && chk.disturbances.length === 0) {
                     const emptyBirdData = `${esc("No records")},"-","","","","",""`;
                     const emptyDistData = `"","","","","","","","","","","",""`;
-                    csvRows.push(`${base},${emptyBirdData},${emptyDistData}${gpsSuffix}`);
+                    csvRows.push(`${base},${emptyBirdData},${emptyDistData}`); // Removed gpsSuffix
                 }
 
                 // Export Birds
                 chk.birds.forEach(b => {
                     const birdData = `${esc(b.species)},${esc(b.count)},${esc(b.nests)},${esc(b.maxH)},${esc(b.minH)},${esc(b.juvs)},${esc(b.remarks)}`;
                     const emptyDistData = `"","","","","","","","","","","",""`; 
-                    csvRows.push(`${base},${birdData},${emptyDistData}${gpsSuffix}`);
+                    csvRows.push(`${base},${birdData},${emptyDistData}`); // Removed gpsSuffix
                 });
 
                 // Export Disturbances
@@ -838,7 +829,7 @@
                     
                     const distData = `${esc(d.type)},${esc(rSp)},${esc(rNum)},${esc(rBeh)},${esc(bType)},${esc(bReg)},${esc(bPass)},${esc(bAct)},${esc(bRem)},${esc(vNum)},${esc(vAct)},${esc(vRem)}`;
                     
-                    csvRows.push(`${base},${emptyBirdData},${distData}${gpsSuffix}`);
+                    csvRows.push(`${base},${emptyBirdData},${distData}`); // Removed gpsSuffix
                 });
             });
 
@@ -852,6 +843,8 @@
             link.click();
             document.body.removeChild(link);
         }
+
+
 
     </script>
     <script>
