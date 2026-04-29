@@ -75,7 +75,10 @@
         <div id="tab-setup" class="tab-section active">
             <div id="statusBannerSetup"></div>
 
-            <h2>🚢 Route</h2>
+           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin:0;">🚢 Route</h2>
+                <button onclick="clearSetupForm()" style="width: auto; padding: 4px 8px; margin: 0; background: transparent; color: #d94f3d; border: 1px solid #d94f3d; font-size: 11px; font-weight: bold; border-radius: 4px;">🔄 Reset Form</button>
+            </div>
             
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
@@ -86,6 +89,7 @@
                     <input type="date" id="envDate" required>
                     <input type="time" id="envTime" required>
                 </div>
+                <div id="routeTagDisplay" style="display: none; background: #e8f3c8; color: #214434; padding: 6px; border-radius: 4px; font-weight: bold; font-size: 13px; text-align: center; margin-top: 6px; border: 1px solid #305f4b;"></div>
 
                 <label style="font-weight: bold; color: #305f4b; margin-top: 10px; display: block;">📍 Location</label>
                 <select id="transectId" onchange="updateSubTransects()">
@@ -95,9 +99,10 @@
                     <option value="S">S</option>
                 </select>
 
-                <select id="subTransect">
+                <select id="subTransect" onchange="displayRouteTag()">
                     <option value="">-- Select Area --</option>
                 </select>
+
             </div>
 
             <div class="card">
@@ -215,9 +220,10 @@
             <button id="closeChecklistBtn" class="btn-primary" onclick="closeChecklist()" style="margin-bottom: 10px; font-size: 18px; background: #333;">💾 SAVE & CLOSE SESSION</button>
             
         </div>
-
-        <div id="tab-data" class="tab-section">
+            <div id="tab-data" class="tab-section">
             <h2>📝 Saved Checklists</h2>
+            
+            <button id="btn-next-area" class="btn-primary" onclick="startNextChecklist()" style="background: #2a8bbb; margin-bottom: 13px; border: 2px solid #1c6488;">⏭️ Start Next Area (Auto-Fill)</button>
             
             <div id="checklistContainer"></div>
 
@@ -270,8 +276,24 @@
             document.getElementById('envDate').value = now.toISOString().split('T')[0];
             document.getElementById('envTime').value = now.toTimeString().slice(0, 5);
         }
+        // NEW: Function to clear the Route setup tab
+        function clearSetupForm() {
+            // Added a quick confirmation so they don't accidentally delete their typing
+            if(confirm("Are you sure you want to clear the Route and Weather forms?")) {
+                document.getElementById('transectId').value = "";
+                updateSubTransects(); // This automatically clears the area dropdown and hides the tag!
+                
+                document.getElementById('envTemp').value = "";
+                document.getElementById('envWeather').value = "";
+                document.getElementById('envWindDir').value = "";
+                document.getElementById('envWindForce').value = "";
+                document.getElementById('setupRemarks').value = "";
+                
+                setNow(); // Reset the date and time back to right now
+            }
+        }
 
-        function updateSubTransects(preselect = "") {
+       function updateSubTransects(preselect = "") {
             const line = document.getElementById('transectId').value;
             const subSelect = document.getElementById('subTransect');
             subSelect.innerHTML = '<option value="">-- Select Area --</option>';
@@ -281,6 +303,28 @@
                     const isSelected = seg === preselect ? "selected" : "";
                     subSelect.innerHTML += `<option value="${seg}" ${isSelected}>${seg}</option>`;
                 });
+            }
+            displayRouteTag(); // Trigger the tag update immediately
+        }
+
+        // NEW: Function to calculate and show the tag on the Route tab
+        function displayRouteTag() {
+            const route = document.getElementById('transectId').value;
+            const area = document.getElementById('subTransect').value;
+            const displayDiv = document.getElementById('routeTagDisplay');
+
+            if (!route || !area || !transectData[route]) {
+                displayDiv.style.display = 'none'; // Hide if missing info
+                return;
+            }
+
+            const index = transectData[route].indexOf(area);
+            if (index !== -1) {
+                const tag = route + String(index + 1).padStart(2, '0');
+                displayDiv.innerHTML = ` Route: <span style="color: #7f3f98;">${tag}</span>`;
+                displayDiv.style.display = 'block';
+            } else {
+                displayDiv.style.display = 'none';
             }
         }
 
@@ -343,6 +387,58 @@
             // UX UPGRADE: Bypassing the GPS request completely.
             // This prevents permission popups, saves battery, and creates the checklist instantly.
             finalizeStart(newChk, null, null, btn);
+        }
+        
+        function startNextChecklist() {
+            if (activeChecklistId) {
+                alert("Please save and close your current active checklist first.");
+                return;
+            }
+            if (checklists.length === 0) {
+                alert("No previous checklists found. Please start your first area manually in the Route tab.");
+                switchTab('tab-setup');
+                return;
+            }
+
+            // 1. Get the most recently saved checklist (index 0)
+            const lastChk = checklists[0]; 
+            const route = lastChk.transectId;
+            const currentArea = lastChk.subTransect;
+
+            if (!route || !currentArea || !transectData[route]) {
+                alert("Could not determine the next area. Please start manually.");
+                switchTab('tab-setup');
+                return;
+            }
+
+            // 2. Find where we are in the route array
+            const currentIndex = transectData[route].indexOf(currentArea);
+            
+            if (currentIndex === -1 || currentIndex >= transectData[route].length - 1) {
+                alert(`🏁 You have reached the end of route ${route}! Please select a new route manually.`);
+                switchTab('tab-setup');
+                return;
+            }
+
+            // 3. Calculate the exact next area
+            const nextArea = transectData[route][currentIndex + 1];
+
+            // 4. Pre-fill the Setup form dynamically
+            setNow(); // Update to the current time
+            document.getElementById('transectId').value = route;
+            updateSubTransects(nextArea); // Updates the dropdown
+            document.getElementById('subTransect').value = nextArea; // Locks in the value
+
+            // UX Bonus: Automatically copy over the weather and remarks from the previous area!
+            document.getElementById('envTemp').value = lastChk.temp || '';
+            document.getElementById('envWeather').value = lastChk.weather || '';
+            document.getElementById('envWindDir').value = lastChk.windDir || '';
+            document.getElementById('envWindForce').value = lastChk.windForce || '';
+            document.getElementById('setupRemarks').value = lastChk.setupRemarks || '';
+
+            // 5. Switch to the Route tab for review, instead of starting automatically
+            switchTab('tab-setup');
+            window.scrollTo(0, 0); 
         }
 
         function finalizeStart(newChk, lat, lng, btn) {
@@ -466,6 +562,7 @@
             
             document.getElementById('transectId').value = "";
             document.getElementById('subTransect').innerHTML = '<option value="">-- Select Area --</option>';
+            document.getElementById('routeTagDisplay').style.display = 'none'; // <-- ADD THIS NEW LINE
             document.getElementById('envTemp').value = "";
             document.getElementById('envWeather').value = "";
             document.getElementById('envWindDir').value = "";
@@ -741,16 +838,28 @@
                 return;
             }
 
+            // NEW: Helper function to generate Area Tags (e.g., "NE01") for the UI display
+            const getTag = (route, area) => {
+                if (!route || !area || !transectData[route]) return "";
+                const index = transectData[route].indexOf(area);
+                if (index === -1) return "";
+                return route + String(index + 1).padStart(2, '0');
+            };
+
             container.innerHTML = checklists.map(chk => {
                 const spCount = chk.birds.length;
                 const totalBirds = chk.birds.reduce((sum, b) => sum + b.count, 0);
                 const hasDist = chk.disturbances.length > 0 ? '⚠️ Disturbance Logged' : '';
+                
+                // NEW: Calculate the tag and format the title (e.g., "[NE01] Che Lei Pai")
+                const areaTag = getTag(chk.transectId, chk.subTransect);
+                const displayTitle = areaTag ? `<span style="color: #7f3f98;">[${areaTag}]</span> ${chk.subTransect}` : `${chk.transectId || 'No Line'} - ${chk.subTransect || 'No Seg'}`;
 
                 return `
                 <div class="card" style="border-left: 5px solid #305f4b;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <strong style="font-size: 16px;">${chk.transectId || 'No Line'} - ${chk.subTransect || 'No Seg'}</strong><br>
+                            <strong style="font-size: 16px;">${displayTitle}</strong><br>
                             <span style="font-size: 12px; color: #666;">🕒 ${chk.time} | 📅 ${chk.date}</span><br>
                             <span style="font-size: 14px; color: #7f3f98; font-weight: bold;">🐦 ${spCount} Species | ${totalBirds} Birds</span>
                             ${hasDist ? `<br><span style="font-size: 12px; color: #d94f3d; font-weight: bold;">${hasDist}</span>` : ''}
