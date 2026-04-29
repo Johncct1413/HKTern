@@ -135,7 +135,7 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                 <h2 style="margin:0;">🐦 Bird List</h2>
                 <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
-                    <span id="currentRouteDisplay" style="background: #e8f3c8; padding: 4px 8px; border-radius: 4px; font-size: 16px; font-weight: bold; color: #214434;">Setup Required</span>
+                    <span id="currentRouteDisplay" style="background: #e8f3c8; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #214434;">Setup Required</span>
                     <button onclick="resetActiveChecklist()" style="width: auto; padding: 4px 8px; margin: 0; background: transparent; color: #d94f3d; border: 1px solid #d94f3d; font-size: 11px; font-weight: bold; border-radius: 4px;">🔄 Erase Entries</button>
                 </div>
             </div>
@@ -233,7 +233,7 @@
         </div>
     </div>
 
-    <div id="bottom-nav">
+     </div> <div id="bottom-nav">
         <button class="nav-btn active" onclick="switchTab('tab-setup')" id="nav-tab-setup">🚢Route</button>
         <button class="nav-btn" onclick="switchTab('tab-entry')" id="nav-tab-entry">🐦Bird</button>
         <button class="nav-btn" onclick="switchTab('tab-data')" id="nav-tab-data">📝Data</button>
@@ -779,44 +779,44 @@
                 return `"${String(str).replace(/"/g, '""')}"`;
             };
 
-            // NEW: Helper function to generate Area Tags (e.g., "NE01", "SE05")
+            // Helper function to generate Area Tags (e.g., "NE01", "SE05")
             const getAreaTag = (route, area) => {
-                // Check if route and area exist in our transectData dictionary
                 if (!route || !area || !transectData[route]) return "";
                 
-                // Find the position of the area in the array
                 const index = transectData[route].indexOf(area);
                 if (index === -1) return "";
                 
-                // Add 1 to index (since arrays start at 0) and pad with a leading zero if needed
                 const num = String(index + 1).padStart(2, '0');
                 return route + num; 
             };
 
-            // NEW: Added "Area Tag" exactly before the "Date" column
+            // NEW: Moved "Latitude" and "Longitude" to the very end of the header string
             let csvRows = [
-                "Waters,Route Order,Date,Area,Arrival Time,Temp,Wind Direction,Wind Force,Weather,Route Remarks,Species,Count,No. of Nest,Max Height,Min Height,No. of Young,Birds Remarks,Disturbance Type,Raptor_Species,Raptor_Count,Raptor_Behavior,Boat_Type,Boat_Reg_No,Boat_Passengers,Boat_Activity,Boat_Remarks,Visitor_No,Visitor_Activity,Visitor_Remarks"
+                "Waters,Route Order,Date,Area,Arrival Time,Temp,Wind Direction,Wind Force,Weather,Route Remarks,Species,Count,No. of Nest,Max Height,Min Height,No. of Young,Birds Remarks,Disturbance Type,Raptor_Species,Raptor_Count,Raptor_Behavior,Boat_Type,Boat_Reg_No,Boat_Passengers,Boat_Activity,Boat_Remarks,Visitor_No,Visitor_Activity,Visitor_Remarks,Latitude,Longitude"
             ];
             
             checklists.forEach(chk => {
                 // Generate the tag dynamically for this checklist
                 const areaTag = getAreaTag(chk.transectId, chk.subTransect);
 
-                // NEW: Injected the areaTag variable into our base data row
+                // Base data (Removed lat and lng from the middle)
                 const base = `${esc(chk.transectId)},${esc(areaTag)},${esc(chk.date)},${esc(chk.subTransect)},${esc(chk.time)},${esc(chk.temp)},${esc(chk.windDir)},${esc(chk.windForce)},${esc(chk.weather)},${esc(chk.setupRemarks)}`;
                 
+                // NEW: Created a GPS suffix to append to the end of every row
+                const gpsSuffix = `,${esc(chk.lat)},${esc(chk.lng)}`;
+
                 // Ensure we log a record even if 0 birds and 0 disturbances were found
                 if (chk.birds.length === 0 && chk.disturbances.length === 0) {
                     const emptyBirdData = `${esc("No records")},"-","","","","",""`;
                     const emptyDistData = `"","","","","","","","","","","",""`;
-                    csvRows.push(`${base},${emptyBirdData},${emptyDistData}`);
+                    csvRows.push(`${base},${emptyBirdData},${emptyDistData}${gpsSuffix}`);
                 }
 
                 // Export Birds
                 chk.birds.forEach(b => {
                     const birdData = `${esc(b.species)},${esc(b.count)},${esc(b.nests)},${esc(b.maxH)},${esc(b.minH)},${esc(b.juvs)},${esc(b.remarks)}`;
                     const emptyDistData = `"","","","","","","","","","","",""`; 
-                    csvRows.push(`${base},${birdData},${emptyDistData}`);
+                    csvRows.push(`${base},${birdData},${emptyDistData}${gpsSuffix}`);
                 });
 
                 // Export Disturbances
@@ -837,7 +837,7 @@
                     
                     const distData = `${esc(d.type)},${esc(rSp)},${esc(rNum)},${esc(rBeh)},${esc(bType)},${esc(bReg)},${esc(bPass)},${esc(bAct)},${esc(bRem)},${esc(vNum)},${esc(vAct)},${esc(vRem)}`;
                     
-                    csvRows.push(`${base},${emptyBirdData},${distData}`);
+                    csvRows.push(`${base},${emptyBirdData},${distData}${gpsSuffix}`);
                 });
             });
 
@@ -851,6 +851,7 @@
             link.click();
             document.body.removeChild(link);
         }
+
     </script>
     <script>
         if ('serviceWorker' in navigator) {
