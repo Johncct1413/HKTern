@@ -3,73 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tern Survey Helper</title>
+    <title>Tern Tracker HK</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#305f4b">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Tern Survey">
+    <meta name="apple-mobile-web-app-title" content="Tern Tracker-HK">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="icon" type="image/png" href="icon-192.png">
     <style>
+        :root {
+            /* Fieldwork Pro Palette - High Contrast, Low Glare */
+            --primary: #235c45;      
+            --primary-hover: #184030;
+            --primary-light: #e8f2ee; 
+            
+            --bg-color: #f1f4f2;     
+            --card-bg: #ffffff;
+            
+            --text-main: #1a2421;    
+            --text-muted: #5b6b65;   
+            --border-light: #d8e0dc;
+            
+            --danger: #d94436;       
+            --danger-bg: #fdf3f2;
+            
+            --accent-ocean: #0284c7; 
+            --accent-ocean-bg: #f0f9ff;
+            
+            --accent-sand: #d97706;  
+            --accent-sand-bg: #fffbeb;
+            
+            /* COMPACT Sizing & Effects */
+            --radius: 8px; /* Tighter corners */
+            --touch-target: 40px; /* Reduced from 48px to save vertical space */
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 2px 4px -1px rgba(0,0,0,0.05);
+        }
+
         * { box-sizing: border-box; touch-action: manipulation !important; }
         
         html, body {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             overflow: hidden; overscroll-behavior-y: none; margin: 0; padding: 0;
-            background-color: #f2eee2; color: #333; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--bg-color); color: var(--text-main); 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex; flex-direction: column;
+            -webkit-font-smoothing: antialiased;
         }
         
-        h2, h3, h4 { margin-top: 0; color: #305f4b; }
+        h2, h3, h4 { margin-top: 0; color: var(--primary); letter-spacing: -0.5px; }
         
+        /* Compact, space-saving inputs */
         input, select, button {
-            width: 100%; padding: 12px; font-size: 16px; 
-            border: 1px solid #ccc; border-radius: 8px; margin-bottom: 8px; background: #fff;
+            width: 100%; min-height: var(--touch-target); padding: 0 10px; font-size: 15px; 
+            border: 1px solid var(--border-light); border-radius: 6px; margin-bottom: 8px; 
+            background: var(--card-bg); color: var(--text-main); transition: all 0.2s ease;
+        }
+        input:focus, select:focus {
+            outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light);
         }
 
-        header { background: #305f4b; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        /* Slimmer Header */
+        header { 
+            background: var(--primary); color: white; padding: 12px; text-align: center; 
+            font-weight: 600; font-size: 16px; z-index: 10; box-shadow: var(--shadow-sm); 
+            letter-spacing: 0.5px;
+        }
         
-        #main-content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        #main-content { flex: 1; overflow-y: auto; padding: 12px; padding-bottom: 80px; }
 
         .tab-section { display: none; }
-        .tab-section.active { display: block; animation: fadeIn 0.15s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-section.active { display: block; animation: fadeIn 0.2s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* Compact Bottom Navigation */
         #bottom-nav {
             position: fixed; bottom: 0; width: 100%; display: flex;
-            background: #fff; border-top: 1px solid #ddd; padding-bottom: env(safe-area-inset-bottom); z-index: 100;
+            background: var(--card-bg); border-top: 1px solid var(--border-light); 
+            padding-bottom: env(safe-area-inset-bottom); z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
         }
         .nav-btn {
             flex: 1; background: transparent; border: none; margin: 0; border-radius: 0;
-            padding: 15px 0; color: #666; font-size: 14px; font-weight: bold; border-bottom: 4px solid transparent;
+            padding: 12px 0; color: var(--text-muted); font-size: 12px; font-weight: 600; 
+            border-top: 3px solid transparent; border-bottom: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .nav-btn.active { color: #305f4b; border-bottom: 4px solid #305f4b; background: #e8f3c8; }
+        .nav-btn.active { color: var(--primary); border-top: 3px solid var(--primary); background: var(--primary-light); }
 
-        .card { background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 12px; border: 1px solid #e0d8c3; }
+        /* Tighter Cards */
+        .card { 
+            background: var(--card-bg); padding: 12px; border-radius: var(--radius); 
+            box-shadow: var(--shadow-md); margin-bottom: 12px; border: 1px solid var(--border-light); 
+        }
         .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         
-        .counter-group { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
-        .counter-btn { flex: 1; font-size: 24px; font-weight: bold; background: #e8f3c8; color: #214434; border: 1px solid #d6c8a6; padding: 10px; margin: 0; }
-        .counter-display { flex: 1.5; text-align: center; font-size: 24px; font-weight: bold; border: 2px solid #305f4b; background: #fff; margin: 0; }
+        /* Compact Counters */
+        .counter-group { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+        .counter-btn { 
+            flex: 1; font-size: 20px; font-weight: 500; background: var(--primary-light); 
+            color: var(--primary); border: none; border-radius: 6px; padding: 0; margin: 0; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .counter-btn:active { background: #d1e2d9; }
+        .counter-display { 
+            flex: 1.5; text-align: center; font-size: 18px; font-weight: 700; 
+            border: 2px solid var(--border-light); background: var(--card-bg); margin: 0; border-radius: 6px;
+        }
 
-        .btn-primary { background: #305f4b; color: white; font-weight: bold; font-size: 16px; padding: 15px; border: none; }
-        .btn-secondary { background: transparent; border: 1px dashed #7f3f98; color: #7f3f98; font-weight: bold; font-size: 14px; padding: 10px; }
-        .btn-tertiary { background: transparent; border: 1px dashed #051cc9; color: #051cc9; font-weight: bold; font-size: 14px; padding: 10px; }
-        .btn-danger { background: transparent; border: 1px dashed #d94f3d; color: #d94f3d; font-weight: bold; font-size: 14px; padding: 10px; }
+        /* Professional Button Hierarchy */
+        .btn-primary { background: var(--primary); color: white; font-weight: 600; border: none; border-radius: var(--radius); }
+        .btn-primary:active { background: var(--primary-hover); }
         
-        .dist-row { background: #fffdf8; border: 1px solid #d6c8a6; padding: 10px; border-radius: 6px; margin-bottom: 10px; position: relative; }
-        .remove-btn { position: absolute; top: 10px; right: 10px; background: #d94f3d; color: white; border: none; border-radius: 4px; width: 30px; height: 30px; padding: 0; font-weight: bold; }
+        .btn-secondary { background: var(--accent-ocean-bg); border: none; color: var(--accent-ocean); font-weight: 600; border-radius: 6px; }
+        .btn-secondary:active { background: #e0f2fe; }
         
-        #statusBanner, #statusBannerSetup { display: none; padding: 10px; text-align: center; font-weight: bold; border-radius: 8px; margin-bottom: 10px; color: white; }
+        .btn-tertiary { background: var(--accent-sand-bg); border: none; color: var(--accent-sand); font-weight: 600; border-radius: 6px; }
+        .btn-tertiary:active { background: #fef3c7; }
+        
+        .btn-danger { background: var(--danger-bg); border: none; color: var(--danger); font-weight: 600; border-radius: 6px; }
+        .btn-danger:active { background: #fee2e2; }
+        
+        /* Refined Sub-rows */
+        .dist-row { background: var(--bg-color); border: 1px solid var(--border-light); padding: 12px; border-radius: 6px; margin-bottom: 8px; position: relative; }
+        .remove-btn { position: absolute; top: 10px; right: 10px; background: var(--danger); color: white; border: none; border-radius: 4px; width: 30px; height: 30px; padding: 0; font-weight: bold; min-height: auto; display: flex; align-items: center; justify-content: center; }
+        
+        #statusBanner, #statusBannerSetup { display: none; padding: 8px; text-align: center; font-weight: 600; font-size: 14px; border-radius: 6px; margin-bottom: 12px; color: white; letter-spacing: 0.5px; }
+
+        /* Compact Typography helpers */
+        label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 3px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
     </style>
 </head>
 <body>
 
-    <header>HK Tern Survey</header>
+    <header>Tern Tracker HK</header>
 
     <div id="main-content">
         <div id="tab-setup" class="tab-section active">
@@ -233,8 +301,8 @@
             </div>
             <button class="btn-danger" onclick="clearAllData()" style="margin-top: 10px; width: 100%; border: 1px solid #d94f3d;">🗑️ Clear All Data</button>
             <div style="margin-top: 30px; text-align: center; color: #888; font-size: 12px; border-top: 1px dashed #ccc; padding-top: 15px;">
-                <p style="margin: 0 0 4px 0;"><strong style="color: #305f4b;">HK Tern Survey Helper</strong></p>
-                <p style="margin: 0 0 4px 0;">Developed for Fieldwork Data Collection by CCT</p>
+                <p style="margin: 0 0 4px 0;"><strong style="color: #305f4b;">Tern Tracker HK</strong></p>
+                <p style="margin: 0 0 4px 0;">Developed for HK Tern Survey Data Collection by CCT</p>
                 <p style="margin: 0 0 4px 0;">For Internal Use Only</p>
                 <p style="margin: 0;">Last Updated: April 2026</p>
         </div>
@@ -345,6 +413,9 @@
                 const seg = document.getElementById('subTransect').value || '?';
                 document.getElementById('currentRouteDisplay').innerText = `${line} / ${seg}`;
             }
+
+            // THE FIX: Scroll the actual scrollable container to the top
+            document.getElementById('main-content').scrollTop = 0;
         }
 
         function startChecklist() {
@@ -436,9 +507,8 @@
             document.getElementById('envWindForce').value = lastChk.windForce || '';
             document.getElementById('setupRemarks').value = lastChk.setupRemarks || '';
 
-            // 5. Switch to the Route tab for review, instead of starting automatically
+            // 5. Switch to the Route tab for review
             switchTab('tab-setup');
-            window.scrollTo(0, 0); 
         }
 
         function finalizeStart(newChk, lat, lng, btn) {
@@ -531,7 +601,7 @@
             }
         }
         
-        function closeChecklist() {
+       function closeChecklist() {
             quickSave(); 
             activeChecklistId = null; 
             
@@ -543,8 +613,8 @@
             
             // Reset main header
             const mainHeader = document.querySelector('header');
-            mainHeader.style.background = '#305f4b';
-            mainHeader.innerHTML = 'HK Tern Survey';
+            mainHeader.style.background = 'var(--primary)'; // Updated for new color theme
+            mainHeader.innerHTML = 'Tern Tracker';
 
             // Unlock the Data tab
             const dataTabBtn = document.getElementById('nav-tab-data');
@@ -562,7 +632,7 @@
             
             document.getElementById('transectId').value = "";
             document.getElementById('subTransect').innerHTML = '<option value="">-- Select Area --</option>';
-            document.getElementById('routeTagDisplay').style.display = 'none'; // <-- ADD THIS NEW LINE
+            document.getElementById('routeTagDisplay').style.display = 'none'; 
             document.getElementById('envTemp').value = "";
             document.getElementById('envWeather').value = "";
             document.getElementById('envWindDir').value = "";
@@ -572,7 +642,6 @@
             setNow(); 
             
             switchTab('tab-data'); 
-            window.scrollTo(0, 0); 
         }
         
 

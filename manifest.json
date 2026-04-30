@@ -1,6 +1,6 @@
 {
-  "name": "HK Tern Survey Data Recorder",
-  "short_name": "Tern Survey",
+  "name": "Tern Tracker HK",
+  "short_name": "Tern Tracker HK",
   "description": "Bird survey tool.",
   "start_url": ".",
   "display": "standalone",
