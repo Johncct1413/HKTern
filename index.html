@@ -14,125 +14,57 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="icon" type="image/png" href="icon-192.png">
     <style>
-        :root {
-            /* Fieldwork Pro Palette - High Contrast, Low Glare */
-            --primary: #235c45;      /* Deep Flora Green - highly visible outdoors */
-            --primary-hover: #184030;
-            --primary-light: #e8f2ee; /* Soft tint for active tabs/buttons */
-            
-            --bg-color: #f1f4f2;     /* Anti-glare cool gray - reduces eye strain in sun */
-            --card-bg: #ffffff;
-            
-            --text-main: #1a2421;    /* Near-black for max sunlight readability */
-            --text-muted: #5b6b65;   /* Slate-green for subtle labels */
-            --border-light: #d8e0dc;
-            
-            --danger: #d94436;       /* Brick red - distinct warning color */
-            --danger-bg: #fdf3f2;
-            
-            --accent-ocean: #0284c7; /* Coastal blue for secondary actions */
-            --accent-ocean-bg: #f0f9ff;
-            
-            --accent-sand: #d97706;  /* Amber/Sand for tertiary actions */
-            --accent-sand-bg: #fffbeb;
-            
-            /* Sizing & Effects */
-            --radius: 12px;
-            --touch-target: 48px;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -1px rgba(0,0,0,0.04);
-        }
-
         * { box-sizing: border-box; touch-action: manipulation !important; }
         
         html, body {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             overflow: hidden; overscroll-behavior-y: none; margin: 0; padding: 0;
-            background-color: var(--bg-color); color: var(--text-main); 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f2eee2; color: #333; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             display: flex; flex-direction: column;
-            -webkit-font-smoothing: antialiased;
         }
         
-        h2, h3, h4 { margin-top: 0; color: var(--primary); letter-spacing: -0.5px; }
+        h2, h3, h4 { margin-top: 0; color: #305f4b; }
         
-        /* Unified, fat-finger friendly inputs */
         input, select, button {
-            width: 100%; min-height: var(--touch-target); padding: 0 14px; font-size: 16px; 
-            border: 1px solid var(--border-light); border-radius: 8px; margin-bottom: 12px; 
-            background: var(--card-bg); color: var(--text-main); transition: all 0.2s ease;
-        }
-        input:focus, select:focus {
-            outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light);
+            width: 100%; padding: 12px; font-size: 16px; 
+            border: 1px solid #ccc; border-radius: 8px; margin-bottom: 8px; background: #fff;
         }
 
-        /* Cleaner Header */
-        header { 
-            background: var(--primary); color: white; padding: 16px; text-align: center; 
-            font-weight: 600; font-size: 18px; z-index: 10; box-shadow: var(--shadow-sm); 
-            letter-spacing: 0.5px;
-        }
+        header { background: #305f4b; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
-        #main-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 90px; }
+        #main-content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
 
         .tab-section { display: none; }
-        .tab-section.active { display: block; animation: fadeIn 0.2s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-section.active { display: block; animation: fadeIn 0.15s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Modern Bottom Navigation */
         #bottom-nav {
             position: fixed; bottom: 0; width: 100%; display: flex;
-            background: var(--card-bg); border-top: 1px solid var(--border-light); 
-            padding-bottom: env(safe-area-inset-bottom); z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
+            background: #fff; border-top: 1px solid #ddd; padding-bottom: env(safe-area-inset-bottom); z-index: 100;
         }
         .nav-btn {
             flex: 1; background: transparent; border: none; margin: 0; border-radius: 0;
-            padding: 16px 0; color: var(--text-muted); font-size: 13px; font-weight: 600; 
-            border-top: 3px solid transparent; border-bottom: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 15px 0; color: #666; font-size: 14px; font-weight: bold; border-bottom: 4px solid transparent;
         }
-        .nav-btn.active { color: var(--primary); border-top: 3px solid var(--primary); background: var(--primary-light); }
+        .nav-btn.active { color: #305f4b; border-bottom: 4px solid #305f4b; background: #e8f3c8; }
 
-        /* Softer Cards */
-        .card { 
-            background: var(--card-bg); padding: 16px; border-radius: var(--radius); 
-            box-shadow: var(--shadow-md); margin-bottom: 16px; border: 1px solid var(--border-light); 
-        }
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 12px; border: 1px solid #e0d8c3; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         
-        /* Modernized Counters */
-        .counter-group { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-        .counter-btn { 
-            flex: 1; font-size: 24px; font-weight: 500; background: var(--primary-light); 
-            color: var(--primary); border: none; border-radius: 8px; padding: 0; margin: 0; 
-            display: flex; align-items: center; justify-content: center;
-        }
-        .counter-btn:active { background: #d1e2d9; }
-        .counter-display { 
-            flex: 1.5; text-align: center; font-size: 22px; font-weight: 700; 
-            border: 2px solid var(--border-light); background: var(--card-bg); margin: 0; border-radius: 8px;
-        }
+        .counter-group { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; }
+        .counter-btn { flex: 1; font-size: 24px; font-weight: bold; background: #e8f3c8; color: #214434; border: 1px solid #d6c8a6; padding: 10px; margin: 0; }
+        .counter-display { flex: 1.5; text-align: center; font-size: 24px; font-weight: bold; border: 2px solid #305f4b; background: #fff; margin: 0; }
 
-        /* Professional Button Hierarchy */
-        .btn-primary { background: var(--primary); color: white; font-weight: 600; border: none; border-radius: var(--radius); }
-        .btn-primary:active { background: var(--primary-hover); }
+        .btn-primary { background: #305f4b; color: white; font-weight: bold; font-size: 16px; padding: 15px; border: none; }
+        .btn-secondary { background: transparent; border: 1px dashed #7f3f98; color: #7f3f98; font-weight: bold; font-size: 14px; padding: 10px; }
+        .btn-tertiary { background: transparent; border: 1px dashed #051cc9; color: #051cc9; font-weight: bold; font-size: 14px; padding: 10px; }
+        .btn-danger { background: transparent; border: 1px dashed #d94f3d; color: #d94f3d; font-weight: bold; font-size: 14px; padding: 10px; }
         
-        .btn-secondary { background: var(--accent-ocean-bg); border: none; color: var(--accent-ocean); font-weight: 600; border-radius: 8px; }
-        .btn-secondary:active { background: #e0f2fe; }
+        .dist-row { background: #fffdf8; border: 1px solid #d6c8a6; padding: 10px; border-radius: 6px; margin-bottom: 10px; position: relative; }
+        .remove-btn { position: absolute; top: 10px; right: 10px; background: #d94f3d; color: white; border: none; border-radius: 4px; width: 30px; height: 30px; padding: 0; font-weight: bold; }
         
-        .btn-tertiary { background: var(--accent-sand-bg); border: none; color: var(--accent-sand); font-weight: 600; border-radius: 8px; }
-        .btn-tertiary:active { background: #fef3c7; }
-        
-        .btn-danger { background: var(--danger-bg); border: none; color: var(--danger); font-weight: 600; border-radius: 8px; }
-        .btn-danger:active { background: #fee2e2; }
-        
-        /* Refined Sub-rows */
-        .dist-row { background: var(--bg-color); border: 1px solid var(--border-light); padding: 16px; border-radius: 8px; margin-bottom: 12px; position: relative; }
-        .remove-btn { position: absolute; top: 12px; right: 12px; background: var(--danger); color: white; border: none; border-radius: 6px; width: 36px; height: 36px; padding: 0; font-weight: bold; min-height: auto; display: flex; align-items: center; justify-content: center; }
-        
-        #statusBanner, #statusBannerSetup { display: none; padding: 12px; text-align: center; font-weight: 600; border-radius: 8px; margin-bottom: 16px; color: white; letter-spacing: 0.5px; }
-
-        /* Typography helpers */
-        label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        #statusBanner, #statusBannerSetup { display: none; padding: 10px; text-align: center; font-weight: bold; border-radius: 8px; margin-bottom: 10px; color: white; }
     </style>
 </head>
 <body>
