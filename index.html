@@ -229,7 +229,7 @@
                     <input type="date" id="envDate" required>
                     <input type="time" id="envTime" required>
                 </div>
-                <div id="routeTagDisplay" style="display: none; background: #e8f3c8; color: #214434; padding: 6px; border-radius: 4px; font-weight: bold; font-size: 13px; text-align: center; margin-top: 6px; border: 1px solid #305f4b;"></div>
+                <div id="routeTagDisplay" style="display: none; background: #e8f3c8; color: #214434; padding: 6px; border-radius: 4px; font-weight: bold; font-size: 15px; text-align: center; margin-top: 6px; border: 1px solid #305f4b;"></div>
 
                 <label style="font-weight: bold; color: #305f4b; margin-top: 10px; display: block;">📍 Location</label>
                 <select id="transectId" onchange="updateSubTransects()">
@@ -360,9 +360,13 @@
 
             <div id="disturbanceContainer"></div>
             <button class="btn-danger" onclick="addDisturbanceRow()" style="margin-bottom: 15px;">⚠️ + Add Disturbance</button>
-            <button id="closeChecklistBtn" class="btn-primary" onclick="closeChecklist()" style="margin-bottom: 10px; font-size: 18px; background: #333;">💾 SAVE & CLOSE SESSION</button>
             
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <button id="closeChecklistBtn" class="btn-primary" onclick="closeChecklist()" style="flex: 2; margin: 0; font-size: 16px;">💾 SAVE & CLOSE</button>
+                <button id="discardBtn" class="btn-danger" onclick="discardChanges()" style="flex: 1; margin: 0; background: var(--danger-bg); border: 1px solid var(--danger); color: var(--danger); font-size: 15px;">✖️ DISCARD CHANGES</button>            
+            </div>
         </div>
+
             <div id="tab-data" class="tab-section">
             <h2>📝 Saved Checklists</h2>
             
@@ -375,13 +379,15 @@
                 <button class="btn-primary" onclick="backupText()" style="background: #7f3f98;">🛟 Backup Text</button>
             </div>
             <button class="btn-danger" onclick="clearAllData()" style="margin-top: 10px; width: 100%; border: 1px solid #d94f3d;">🗑️ Clear All Data</button>
-            <div style="margin-top: 30px; text-align: center; color: #888; font-size: 12px; border-top: 1px dashed #ccc; padding-top: 15px;">
-                <p style="margin: 0 0 4px 0;"><strong style="color: #305f4b;">Tern Tracker HK</strong></p>
-                <p style="margin: 0 0 4px 0;">Developed for HK Tern Survey Data Collection by CCT</p>
-                <p style="margin: 0 0 4px 0;">For Internal Use Only</p>
-                <p style="margin: 0;">Last Updated: April 2026</p>
-        </div>
-    </div>
+            <div style="margin-top: 30px; text-align: center; color: var(--text-muted); font-size: 12px; border-top: 1px dashed var(--border-light); padding-top: 15px;">
+                <p style="margin: 0 0 4px 0;"><strong style="color: var(--primary);">TernTracker HK</strong></p>
+                <p style="margin: 0 0 4px 0;">Developed for Fieldwork Data Collection by John Chung</p>
+                <p style="margin: 0 0 12px 0;">For Internal Use Only • Last Updated: May 2026</p>
+                
+                <div style="background: var(--danger-bg); color: var(--danger); padding: 10px; border-radius: 6px; text-align: left; font-size: 11px; line-height: 1.4;">
+                    <strong>⚠️ Data Storage Disclaimer:</strong> All survey data is stored locally on this device. Clearing your browser history/cache will permanently delete your records. The developer is not responsible for lost data. Please export your data regularly.
+                </div>
+            </div>
 
      </div> <div id="bottom-nav">
         <button class="nav-btn active" onclick="switchTab('tab-setup')" id="nav-tab-setup">🚢Route</button>
@@ -406,17 +412,17 @@
                     </thead>
                     <tbody>
                         <tr><td class="force-col">0</td><td>< 2</td><td>Calm</td></tr>
-                        <tr><td class="force-col">1</td><td>2 - 6</td><td>Light Air</td></tr>
-                        <tr><td class="force-col">2</td><td>7 - 12</td><td>Light Breeze</td></tr>
-                        <tr><td class="force-col">3</td><td>13 - 19</td><td>Gentle Breeze</td></tr>
-                        <tr><td class="force-col">4</td><td>20 - 30</td><td>Moderate Breeze</td></tr>
-                        <tr><td class="force-col">5</td><td>31 - 40</td><td>Fresh Breeze</td></tr>
-                        <tr><td class="force-col">6</td><td>41 - 51</td><td>Strong Breeze</td></tr>
-                        <tr><td class="force-col">7</td><td>52 - 62</td><td>Near Gale</td></tr>
+                        <tr><td class="force-col">1</td><td>2 - 6</td><td>Light</td></tr>
+                        <tr><td class="force-col">2</td><td>7 - 12</td><td>Light</td></tr>
+                        <tr><td class="force-col">3</td><td>13 - 19</td><td>Moderate</td></tr>
+                        <tr><td class="force-col">4</td><td>20 - 30</td><td>Moderate</td></tr>
+                        <tr><td class="force-col">5</td><td>31 - 40</td><td>Fresh</td></tr>
+                        <tr><td class="force-col">6</td><td>41 - 51</td><td>Strong</td></tr>
+                        <tr><td class="force-col">7</td><td>52 - 62</td><td>Strong</td></tr>
                         <tr><td class="force-col">8</td><td>63 - 75</td><td>Gale</td></tr>
-                        <tr><td class="force-col">9</td><td>76 - 87</td><td>Strong Gale</td></tr>
+                        <tr><td class="force-col">9</td><td>76 - 87</td><td>Gale</td></tr>
                         <tr><td class="force-col">10</td><td>88 - 103</td><td>Storm</td></tr>
-                        <tr><td class="force-col">11</td><td>104 - 117</td><td>Violent Storm</td></tr>
+                        <tr><td class="force-col">11</td><td>104 - 117</td><td>Storm</td></tr>
                         <tr><td class="force-col">12</td><td>≥ 118</td><td>Hurricane</td></tr>
                     </tbody>
                 </table>
@@ -768,8 +774,50 @@
             
             switchTab('tab-data'); 
         }
-        
 
+        function discardChanges() {
+            if (confirm("Discard unsaved changes? This will revert the checklist to its last saved state.")) {
+                // THE MAGIC BULLET: Nullifying this prevents the app from auto-saving
+                activeChecklistId = null; 
+                
+                document.getElementById('startBtn').innerText = "Create & Start Checklist ➔";
+
+                // Restore UI to Normal
+                document.getElementById('statusBanner').style.display = 'none';
+                document.getElementById('statusBannerSetup').style.display = 'none';
+                
+                const mainHeader = document.querySelector('header');
+                mainHeader.style.background = 'var(--primary)';
+                mainHeader.innerHTML = 'HK Tern Survey';
+
+                const dataTabBtn = document.getElementById('nav-tab-data');
+                dataTabBtn.style.opacity = '1';
+                dataTabBtn.style.pointerEvents = 'auto'; 
+
+                const birdTabBtn = document.getElementById('nav-tab-entry');
+                birdTabBtn.style.opacity = '0.3';
+                birdTabBtn.style.pointerEvents = 'none';
+                
+                // Erase the unsaved junk from the screen
+                document.getElementById('speciesContainer').innerHTML = '';
+                document.getElementById('disturbanceContainer').innerHTML = '';
+                
+                document.getElementById('transectId').value = "";
+                document.getElementById('subTransect').innerHTML = '<option value="">-- Select Area --</option>';
+                document.getElementById('routeTagDisplay').style.display = 'none'; 
+                document.getElementById('envTemp').value = "";
+                document.getElementById('envWeather').value = "";
+                document.getElementById('envWindDir').value = "";
+                document.getElementById('envWindForce').value = "";
+                document.getElementById('setupRemarks').value = ""; 
+                
+                setNow(); 
+                
+                // Retreat safely to the Data tab
+                switchTab('tab-data'); 
+            }
+        }
+        
            function loadChecklistIntoTab2(id, isNew = false) {
             const chk = checklists.find(c => c.id === id);
             if(!chk) return;
@@ -800,7 +848,8 @@
             const bannerSetup = document.getElementById('statusBannerSetup');
             const mainHeader = document.querySelector('header');
             const dataTabBtn = document.getElementById('nav-tab-data');
-            const birdTabBtn = document.getElementById('nav-tab-entry'); // NEW
+            const birdTabBtn = document.getElementById('nav-tab-entry'); 
+            const discardBtn = document.getElementById('discardBtn'); // Grab the new button
 
             banner.style.display = 'block';
             bannerSetup.style.display = 'block';
@@ -813,8 +862,16 @@
             birdTabBtn.style.opacity = '1';
             birdTabBtn.style.pointerEvents = 'auto'; 
 
-            mainHeader.style.background = '#f39c12';
-            mainHeader.innerHTML = `✏️ EDITING: ${chk.transectId || 'Route'} - ${chk.subTransect || 'Area'}`;
+            // LOGIC: Change UI based on whether this is a NEW checklist or an EDIT
+            if (isNew) {
+                mainHeader.style.background = 'var(--primary)'; // Stay green for new records
+                mainHeader.innerHTML = `🟢 RECORDING: ${chk.transectId || 'Route'} - ${chk.subTransect || 'Area'}`;
+                discardBtn.style.display = 'none'; // Hide the discard button
+            } else {
+                mainHeader.style.background = 'var(--accent-sand)'; // Turn amber/warning for edits
+                mainHeader.innerHTML = `✏️ EDITING: ${chk.transectId || 'Route'} - ${chk.subTransect || 'Area'}`;
+                discardBtn.style.display = 'block'; // Show the discard button
+            }
 
             switchTab('tab-entry');
         }
@@ -847,7 +904,7 @@
                             <label>Species</label>
                             <input type="text" class="sp-name" list="hk-tern" value="${sp}" placeholder="e.g. Bridled Tern" style="width: 100%; margin: 0; font-weight: 600; font-size: 15px;">
                         </div>
-                        <button class="btn-danger" onclick="document.getElementById('${id}').remove()" style="width: 40px; height: 40px; margin: 0; padding: 0; font-size: 16px; display: flex; align-items: center; justify-content: center;">X</button>
+                        <button class="btn-danger" onclick="if(confirm('Delete this species record?')) document.getElementById('${id}').remove()" style="width: 40px; height: 40px; margin: 0; padding: 0; font-size: 16px; display: flex; align-items: center; justify-content: center;">X</button>
                     </div>
                     
                     <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end;">
@@ -915,17 +972,23 @@
             const container = document.getElementById('disturbanceContainer');
             const id = 'dist-' + Date.now() + Math.floor(Math.random() * 1000);
             
+            // UX UPGRADE: Replaced absolute positioning with Flexbox so the X button never overlaps the select field.
+            // Also updated the label color to use our new var(--danger) CSS variable.
             const html = `
                 <div class="dist-row" id="${id}">
-                    <button class="remove-btn" onclick="document.getElementById('${id}').remove()">X</button>
-                    <label style="font-weight: bold; color: #d94f3d;">Disturbance Type</label>
-                    <select class="dist-type" onchange="updateDistFields('${id}')" style="margin-top: 5px;">
-                        <option value="">-- Select Type --</option>
-                        <option value="Raptor">🦅 Raptor</option>
-                        <option value="Boat">🚤 Boat</option>
-                        <option value="Visitor">🚶 Visitor</option>
-                    </select>
-                    <div class="dist-fields" style="margin-top: 10px;"></div>
+                    <div style="display: flex; gap: 8px; align-items: flex-end; margin-bottom: 8px;">
+                        <div style="flex: 1;">
+                            <label style="color: var(--danger);">Disturbance Type</label>
+                            <select class="dist-type" onchange="updateDistFields('${id}')" style="margin: 0;">
+                                <option value="">-- Select Type --</option>
+                                <option value="Raptor">🦅 Raptor</option>
+                                <option value="Boat">🚤 Boat</option>
+                                <option value="Visitor">🚶 Visitor</option>
+                            </select>
+                        </div>
+                        <button class="btn-danger" onclick="if(confirm('Delete this disturbance record?')) document.getElementById('${id}').remove()" style="width: 40px; height: 40px; margin: 0; padding: 0; font-size: 16px; display: flex; align-items: center; justify-content: center;">X</button>
+                    </div>
+                    <div class="dist-fields"></div>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
