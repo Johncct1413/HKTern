@@ -271,8 +271,18 @@
             </div>
 
             <div class="card">
-                <label style="font-size: 12px; font-weight: bold; color: #305f4b; margin-bottom: 4px; display: block;">Remarks</label>
-                <input type="text" id="setupRemarks" placeholder="e.g. AFCD staff/surveyors">
+                <div class="two-col" style="margin-bottom: 8px;">
+                    <div>
+                        <label>AFCD Staff</label>
+                        <input type="text" id="afcdStaff">
+                    </div>
+                    <div>
+                        <label>Surveyor</label>
+                        <input type="text" id="surveyor">
+                    </div>
+                </div>
+                <label>Remarks</label>
+                <input type="text" id="setupRemarks" placeholder="e.g. General route notes">
             </div>
 
             <button id="startBtn" class="btn-primary" onclick="startChecklist()">Create & Start Checklist ➔</button>
@@ -486,6 +496,8 @@
                 document.getElementById('envWeather').value = "";
                 document.getElementById('envWindDir').value = "";
                 document.getElementById('envWindForce').value = "";
+                document.getElementById('afcdStaff').value = "";
+                document.getElementById('surveyor').value = "";
                 document.getElementById('setupRemarks').value = "";
                 
                 setNow(); // Reset the date and time back to right now
@@ -566,7 +578,7 @@
             btn.innerText = "⏳ Creating Checklist...";
             btn.disabled = true;
 
-            const newChk = {
+           const newChk = {
                 id: 'chk-' + Date.now(),
                 date: document.getElementById('envDate').value,
                 time: document.getElementById('envTime').value,
@@ -576,6 +588,8 @@
                 weather: document.getElementById('envWeather').value,
                 windDir: document.getElementById('envWindDir').value,
                 windForce: document.getElementById('envWindForce').value,
+                afcdStaff: document.getElementById('afcdStaff').value.trim(),
+                surveyor: document.getElementById('surveyor').value.trim(),
                 setupRemarks: document.getElementById('setupRemarks').value.trim(),
                 birds: [
                     { species: 'Black-naped Tern', count: 0, remarks: '', nests: '', juvs: '', minH: '', maxH: '' },
@@ -636,6 +650,8 @@
             document.getElementById('envWeather').value = lastChk.weather || '';
             document.getElementById('envWindDir').value = lastChk.windDir || '';
             document.getElementById('envWindForce').value = lastChk.windForce || '';
+            document.getElementById('afcdStaff').value = lastChk.afcdStaff || '';   
+            document.getElementById('surveyor').value = lastChk.surveyor || '';  
             document.getElementById('setupRemarks').value = lastChk.setupRemarks || '';
 
             // 5. Switch to the Route tab for review
@@ -671,6 +687,8 @@
             chk.weather = document.getElementById('envWeather').value;
             chk.windDir = document.getElementById('envWindDir').value;
             chk.windForce = document.getElementById('envWindForce').value;
+            chk.afcdStaff = document.getElementById('afcdStaff').value.trim();
+            chk.surveyor = document.getElementById('surveyor').value.trim();
             chk.setupRemarks = document.getElementById('setupRemarks').value.trim(); // NEW
 
             const validBirds = [];
@@ -760,7 +778,6 @@
             
             document.getElementById('speciesContainer').innerHTML = '';
             document.getElementById('disturbanceContainer').innerHTML = '';
-            
             document.getElementById('transectId').value = "";
             document.getElementById('subTransect').innerHTML = '<option value="">-- Select Area --</option>';
             document.getElementById('routeTagDisplay').style.display = 'none'; 
@@ -769,6 +786,8 @@
             document.getElementById('envWindDir').value = "";
             document.getElementById('envWindForce').value = "";
             document.getElementById('setupRemarks').value = ""; 
+            document.getElementById('afcdStaff').value = "";
+            document.getElementById('surveyor').value = "";
             
             setNow(); 
             
@@ -801,7 +820,6 @@
                 // Erase the unsaved junk from the screen
                 document.getElementById('speciesContainer').innerHTML = '';
                 document.getElementById('disturbanceContainer').innerHTML = '';
-                
                 document.getElementById('transectId').value = "";
                 document.getElementById('subTransect').innerHTML = '<option value="">-- Select Area --</option>';
                 document.getElementById('routeTagDisplay').style.display = 'none'; 
@@ -810,6 +828,8 @@
                 document.getElementById('envWindDir').value = "";
                 document.getElementById('envWindForce').value = "";
                 document.getElementById('setupRemarks').value = ""; 
+                document.getElementById('afcdStaff').value = "";
+                document.getElementById('surveyor').value = "";
                 
                 setNow(); 
                 
@@ -833,10 +853,11 @@
             document.getElementById('envWeather').value = chk.weather;
             document.getElementById('envWindDir').value = chk.windDir;
             document.getElementById('envWindForce').value = chk.windForce;
-            document.getElementById('setupRemarks').value = chk.setupRemarks || ""; 
+            document.getElementById('setupRemarks').value = chk.setupRemarks || "";
+            document.getElementById('afcdStaff').value = chk.afcdStaff || "";
+            document.getElementById('surveyor').value = chk.surveyor || ""; 
 
             document.getElementById('startBtn').innerText = "Continue to Checklist ➔";
-
             document.getElementById('speciesContainer').innerHTML = '';
             document.getElementById('disturbanceContainer').innerHTML = '';
             
@@ -1141,7 +1162,7 @@
             });
         }
         
-        function exportCSV() {
+       function exportCSV() {
             if (checklists.length === 0) return alert("No data to export.");
             
             // Helper function to safely escape CSV strings
@@ -1153,38 +1174,34 @@
             // Helper function to generate Area Tags (e.g., "NE01", "SE05")
             const getAreaTag = (route, area) => {
                 if (!route || !area || !transectData[route]) return "";
-                
                 const index = transectData[route].indexOf(area);
                 if (index === -1) return "";
-                
-                const num = String(index + 1).padStart(2, '0');
-                return route + num; 
+                return route + String(index + 1).padStart(2, '0'); 
             };
 
-            // REMOVED: Latitude and Longitude from the end of the header
+            // NEW: Added AFCD Staff and Surveyor between Weather and Route Remarks
             let csvRows = [
-                "Waters,Route Order,Date,Area,Arrival Time,Temp,Wind Direction,Wind Force,Weather,Route Remarks,Species,Count,No. of Nest,Max Height,Min Height,No. of Young,Birds Remarks,Disturbance Type,Raptor_Species,Raptor_Count,Raptor_Behavior,Boat_Type,Boat_Reg_No,Boat_Passengers,Boat_Activity,Boat_Remarks,Visitor_No,Visitor_Activity,Visitor_Remarks"
+                "Waters,Route Order,Date,Area,Arrival Time,Temp,Wind Direction,Wind Force,Weather,AFCD Staff,Surveyor,Route Remarks,Species,Count,No. of Nest,Max Height,Min Height,No. of Young,Birds Remarks,Disturbance Type,Raptor_Species,Raptor_Count,Raptor_Behavior,Boat_Type,Boat_Reg_No,Boat_Passengers,Boat_Activity,Boat_Remarks,Visitor_No,Visitor_Activity,Visitor_Remarks"
             ];
             
             checklists.forEach(chk => {
-                // Generate the tag dynamically for this checklist
                 const areaTag = getAreaTag(chk.transectId, chk.subTransect);
 
-                // Base data 
-                const base = `${esc(chk.transectId)},${esc(areaTag)},${esc(chk.date)},${esc(chk.subTransect)},${esc(chk.time)},${esc(chk.temp)},${esc(chk.windDir)},${esc(chk.windForce)},${esc(chk.weather)},${esc(chk.setupRemarks)}`;
+                // NEW: Included chk.afcdStaff and chk.surveyor in the base row
+                const base = `${esc(chk.transectId)},${esc(areaTag)},${esc(chk.date)},${esc(chk.subTransect)},${esc(chk.time)},${esc(chk.temp)},${esc(chk.windDir)},${esc(chk.windForce)},${esc(chk.weather)},${esc(chk.afcdStaff)},${esc(chk.surveyor)},${esc(chk.setupRemarks)}`;
 
                 // Ensure we log a record even if 0 birds and 0 disturbances were found
                 if (chk.birds.length === 0 && chk.disturbances.length === 0) {
                     const emptyBirdData = `${esc("No records")},"-","","","","",""`;
                     const emptyDistData = `"","","","","","","","","","","",""`;
-                    csvRows.push(`${base},${emptyBirdData},${emptyDistData}`); // Removed gpsSuffix
+                    csvRows.push(`${base},${emptyBirdData},${emptyDistData}`); 
                 }
 
                 // Export Birds
                 chk.birds.forEach(b => {
                     const birdData = `${esc(b.species)},${esc(b.count)},${esc(b.nests)},${esc(b.maxH)},${esc(b.minH)},${esc(b.juvs)},${esc(b.remarks)}`;
                     const emptyDistData = `"","","","","","","","","","","",""`; 
-                    csvRows.push(`${base},${birdData},${emptyDistData}`); // Removed gpsSuffix
+                    csvRows.push(`${base},${birdData},${emptyDistData}`); 
                 });
 
                 // Export Disturbances
@@ -1205,7 +1222,7 @@
                     
                     const distData = `${esc(d.type)},${esc(rSp)},${esc(rNum)},${esc(rBeh)},${esc(bType)},${esc(bReg)},${esc(bPass)},${esc(bAct)},${esc(bRem)},${esc(vNum)},${esc(vAct)},${esc(vRem)}`;
                     
-                    csvRows.push(`${base},${emptyBirdData},${distData}`); // Removed gpsSuffix
+                    csvRows.push(`${base},${emptyBirdData},${distData}`); 
                 });
             });
 
