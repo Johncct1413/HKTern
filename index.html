@@ -388,6 +388,7 @@
                 <button class="btn-primary" onclick="exportCSV()" style="background: #305f4b;">📥 Export CSV</button>
                 <button class="btn-primary" onclick="backupText()" style="background: #7f3f98;">🛟 Backup Text</button>
             </div>
+            <button class="btn-primary" onclick="restoreText()" style="margin-top: 10px; width: 100%; background: #0284c7;">🔄 Restore Data</button>
             <button class="btn-danger" onclick="clearAllData()" style="margin-top: 10px; width: 100%; border: 1px solid #d94f3d;">🗑️ Clear All Data</button>
             <div style="margin-top: 30px; text-align: center; color: var(--text-muted); font-size: 12px; border-top: 1px dashed var(--border-light); padding-top: 15px;">
                 <p style="margin: 0 0 4px 0;"><strong style="color: var(--primary);">TernTracker HK</strong></p>
@@ -1162,6 +1163,34 @@
             });
         }
         
+        function restoreText() {
+            const backupData = prompt("PASTE your backup text here to restore your survey:");
+            
+            if (!backupData) return; // User cancelled
+            
+            try {
+                const parsedData = JSON.parse(backupData);
+                // Check if it's a valid Tern Tracker array of checklists
+                if (Array.isArray(parsedData) && parsedData.length > 0 && parsedData[0].id) {
+                    const confirmRestore = confirm(`Found ${parsedData.length} records. Do you want to merge this with your current data?`);
+                    if (confirmRestore) {
+                        // Merge the arrays, keeping unique IDs to prevent duplicates
+                        const existingIds = checklists.map(c => c.id);
+                        const newRecords = parsedData.filter(c => !existingIds.includes(c.id));
+                        
+                        checklists = [...checklists, ...newRecords];
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(checklists));
+                        renderChecklists();
+                        alert("✅ Data Restored Successfully!");
+                    }
+                } else {
+                    alert("❌ Invalid backup data format.");
+                }
+            } catch (e) {
+                alert("❌ Failed to read data. Make sure you pasted the exact backup text.");
+            }
+        }
+
        function exportCSV() {
             if (checklists.length === 0) return alert("No data to export.");
             
